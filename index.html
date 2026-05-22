@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0c0c10" />
+  <title>备考工具</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0c10; font-family: 'Noto Serif SC', 'SimSun', serif; }
+    input, select, textarea, button { font-family: inherit; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const PHASE_COLOR = {
+“专项”: “#7eb8f7”,
+“专项→模拟”: “#a8d8a8”,
+“模拟”: “#f7c87e”,
+“冲刺”: “#f7a8a8”,
+“考前”: “#c8a8f8”,
+“休息”: “#3a3a5a”,
+};
+
+// 真题套次：专项用1-12，模拟用13-15
+// 听力：第1,3,5,7套（5/22,5/24,5/26,5/29）
+// 阅读：第2,4,6,8套（5/23,5/25,5/27,5/30）
+// 翻译：穿插在阅读日，用同一套
+// 写作：穿插在听力日
+// 5/31专项收尾用9-12套混合，6/1-3模拟①②③用13-15套
+
+const schedule = [
+// ── 专项阶段 ──
+{
+date:“05/22”,day:“周四”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第1套听力：短对话+长对话+讲座全做”,
+“精听错题：暂停回放，听写关键句”,
+“总结转折词出题规律（but/however/actually后是答案）”,
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“1h”,items:[
+“背范文×2篇（议论文类）”,
+“摘抄核心句式10条”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题对应章节10题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/23”,day:“周五”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“0.5h”,items:[
+“【+1天】复盘05/22听力（第1套）”,
+“【+1天】复盘05/22写作”,
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第2套阅读：长篇匹配（计时15min）+仔细阅读×2篇（计时25min）”,
+“复盘定位技巧，标记出题句”,
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第2套翻译段落×1，对照答案总结差距”,
+“积累中国文化词汇：春节/丝绸之路/书法等10个”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题+错题回顾”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/24”,day:“周六”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“0.5h”,items:[
+“【+1天】复盘05/23阅读（第2套）”,
+“【+1天】复盘05/23翻译（第2套）”,
+]},
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第3套听力：全做，重点听讲座部分”,
+“整理易错词汇10个，练习边听边记关键词”,
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“1h”,items:[
+“限时写作①×1篇（严格45分钟）”,
+“对照范文自评，找差距”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/25”,day:“周日”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+3天】复盘05/22听力（第1套）”,
+“【+3天】复盘05/22写作”,
+“【+1天】复盘05/24听力（第3套）”,
+“【+1天】复盘05/24写作①”,
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第4套阅读：长篇匹配+仔细阅读（计时35min内完成）”,
+“总结长篇匹配策略：先看题干再扫文章”,
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第4套翻译段落×1”,
+“积累经济词汇：可持续发展/人工智能等10个”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“本周660题错题集中回顾”,”【+3天】复盘05/22的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+3天】复盘05/22自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/26”,day:“周一”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+3天】复盘05/23阅读（第2套）”,
+“【+3天】复盘05/23翻译（第2套）”,
+“【+1天】复盘05/25阅读（第4套）”,
+“【+1天】复盘05/25翻译（第4套）”,
+]},
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第5套听力：全做，精听长对话部分”,
+“练习选项预读技巧：利用间隔时间看下题选项”,
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“0.5h”,items:[
+“背范文×2篇（现象分析类）”,
+“整理开头/结尾万能句式各3套”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题”,”【+3天】复盘05/23的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+3天】复盘05/23自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/27”,day:“周二”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+3天】复盘05/24听力（第3套）”,
+“【+3天】复盘05/24写作①”,
+“【+1天】复盘05/26听力（第5套）”,
+“【+1天】复盘05/26写作”,
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第6套阅读：长篇匹配+仔细阅读”,
+“计时训练：全部控制在35分钟内完成”,
+“整理高频干扰选项规律”,
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第6套翻译段落×1”,
+“积累科技词汇：量子计算/碳中和等10个”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题+错题回顾”,”【+3天】复盘05/24的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+3天】复盘05/24自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/28”,day:“周三”,phase:“休息”,rest:true,
+tasks:[
+{subject:“休息日”,color:”#6b6b8a”,time:“随意”,items:[
+“出门运动/散步 40min”,
+“完全放松，不碰课本”,
+“⚠ 可选：复盘05/25阅读+翻译（+3天）、05/27阅读+翻译（+1天）”,
+]},
+]
+},
+{
+date:“05/29”,day:“周四”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/22听力（第1套）”,
+“【+7天】复盘05/22写作”,
+“【+3天】复盘05/26听力（第5套）”,
+“【+3天】复盘05/26写作”,
+]},
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第7套听力：全做，重点讲座题”,
+“总结讲座常见话题：教育/科技/环境”,
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“0.5h”,items:[
+“限时写作②×1篇（严格45分钟）”,
+“重点练段落展开，不只写提纲”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“660题10题”,”【+7天】复盘05/22的错题”,”【+3天】复盘05/26的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+7天】复盘05/22自控内容（重看笔记+做例题）”,”【+3天】复盘05/26自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/30”,day:“周五”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.5h”,items:[
+“【+7天】复盘05/23阅读（第2套）”,
+“【+7天】复盘05/23翻译（第2套）”,
+“【+3天】复盘05/27阅读（第6套）”,
+“【+3天】复盘05/27翻译（第6套）”,
+“【+1天】复盘05/29听力（第7套）”,
+“【+1天】复盘05/29写作②”,
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1h”,items:[
+“第8套阅读：长篇匹配+仔细阅读（计时35min）”,
+“错题分析：定位失误还是词汇不够”,
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第8套翻译段落×1，复习所有积累词汇”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“660题10题+错题回顾”,”【+7天】复盘05/23的错题”,”【+3天】复盘05/27的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+7天】复盘05/23自控内容（重看笔记+做例题）”,”【+3天】复盘05/27自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“05/31”,day:“周六”,phase:“专项→模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘05/24听力（第3套）”,
+“【+7天】复盘05/24写作①”,
+“【+1天】复盘05/30阅读（第8套）”,
+“【+1天】复盘05/30翻译（第8套）”,
+]},
+{subject:“六级·专项收尾”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第9-12套：各取听力/阅读1段做热身”,
+“写作：默写1篇范文测试记忆”,
+“翻译：整理全部积累词汇过一遍”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“660题10题”,”【+7天】复盘05/24的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+7天】复盘05/24自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+// ── 模拟阶段 ──
+{
+date:“06/01”,day:“周日”,phase:“模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/25阅读（第4套）”,
+“【+7天】复盘05/25翻译（第4套）”,
+“【+3天】复盘05/29听力（第7套）”,
+“【+3天】复盘05/29写作②”,
+“【+1天】复盘05/31专项收尾”,
+]},
+{subject:“六级·模拟①”,color:”#f7c87e”,time:“2.5h”,items:[
+“第13套 完整计时做（2h20min严格计时）”,
+“按顺序：听力→阅读→翻译→写作”,
+“做完统计各题型得分，找最弱项”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“强化36讲 0.5h”,“本周660题错题集中回顾”,”【+7天】复盘05/25的错题”,”【+3天】复盘05/29的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“卢姥爷视频 0.5h”,”【+7天】复盘05/25自控内容（重看笔记+做例题）”,”【+3天】复盘05/29自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“06/02”,day:“周一”,phase:“模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/26听力（第5套）”,
+“【+7天】复盘05/26写作”,
+“【+3天】复盘05/30阅读（第8套）”,
+“【+3天】复盘05/30翻译（第8套）”,
+“【+1天】复盘06/01模拟①（第13套）”,
+]},
+{subject:“六级·模拟②”,color:”#f7c87e”,time:“2.5h”,items:[
+“第14套 完整计时做”,
+“重点关注模拟①薄弱题型的时间分配”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“强化36讲 0.5h”,“660题10题”,”【+7天】复盘05/26的错题”,”【+3天】复盘05/30的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“卢姥爷视频 0.5h”,”【+7天】复盘05/26自控内容（重看笔记+做例题）”,”【+3天】复盘05/30自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“06/03”,day:“周二”,phase:“模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘05/27阅读（第6套）”,
+“【+7天】复盘05/27翻译（第6套）”,
+“【+3天】复盘05/31专项收尾”,
+“【+1天】复盘06/02模拟②（第14套）”,
+]},
+{subject:“六级·模拟③”,color:”#f7c87e”,time:“2.5h”,items:[
+“第15套 完整计时做（最后一套模拟）”,
+“全程模拟考场，不中途停顿”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“强化36讲 0.5h”,“660题10题+错题回顾”,”【+7天】复盘05/27的错题”,”【+3天】复盘05/31的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“卢姥爷视频 0.5h”,”【+7天】复盘05/27自控内容（重看笔记+做例题）”,”【+3天】复盘05/31自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]},
+]
+},
+{
+date:“06/04”,day:“周三”,phase:“休息”,rest:true,
+tasks:[
+{subject:“休息日”,color:”#6b6b8a”,time:“随意”,items:[
+“出门运动 40min，完全放松”,
+“⚠ 可选：复盘06/01模拟①（+3天）”,
+“⚠ 可选：复盘06/03模拟③（+1天）”,
+]},
+]
+},
+// ── 冲刺阶段 ──
+{
+date:“06/05”,day:“周四”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/29听力（第7套）”,
+“【+7天】复盘05/29写作②”,
+“【+3天】复盘06/02模拟②（第14套）”,
+]},
+{subject:“六级·冲刺”,color:”#f7a8a8”,time:“1.5h”,items:[
+“针对三套模拟最弱题型专项加强”,
+“听力：重听错得最多的讲座题×3篇”,
+“制定考场时间分配策略”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“错题回顾”,”【+14天】复盘05/22的错题”,”【+7天】复盘05/29的错题”,”【+3天】复盘06/02的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+14天】复盘05/22自控内容（重看笔记+做例题）”,”【+7天】复盘05/29自控内容（重看笔记+做例题）”,”【+3天】复盘06/02自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“复习高频词”]},
+]
+},
+{
+date:“06/06”,day:“周五”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.5h”,items:[
+“【+7天】复盘05/30阅读（第8套）”,
+“【+7天】复盘05/30翻译（第8套）”,
+“【+3天】复盘06/03模拟③（第15套）”,
+“【+1天】复盘06/05听力冲刺”,
+“【+1天】复盘06/05薄弱题型”,
+]},
+{subject:“六级·写作冲刺”,color:”#f7a8c8”,time:“1h”,items:[
+“默写最熟的3篇范文测试”,
+“整理考场写作模板一张纸”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“薄弱章节660题”,”【+14天】复盘05/23的错题”,”【+7天】复盘05/30的错题”,”【+3天】复盘06/03的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+14天】复盘05/23自控内容（重看笔记+做例题）”,”【+7天】复盘05/30自控内容（重看笔记+做例题）”,”【+3天】复盘06/03自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“复习所有生词”]},
+]
+},
+{
+date:“06/07”,day:“周六”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘05/31专项收尾”,
+“【+1天】复盘06/06写作冲刺”,
+]},
+{subject:“六级·冲刺”,color:”#f7a8a8”,time:“1.5h”,items:[
+“听力：重听3次模拟错最多的讲座×3篇”,
+“阅读：长篇匹配做1篇保持感觉”,
+“翻译：词汇最后过一遍”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,”【+14天】复盘05/24的错题”,”【+7天】复盘05/31的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+14天】复盘05/24自控内容（重看笔记+做例题）”,”【+7天】复盘05/31自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“1h”,items:[“复习全部生词本”]},
+]
+},
+{
+date:“06/08”,day:“周日”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.5h”,items:[
+“【+7天】复盘06/01模拟①（第13套）”,
+“【+3天】复盘06/05听力冲刺”,
+“【+3天】复盘06/05薄弱题型”,
+“【+1天】复盘06/07听力冲刺”,
+“【+1天】复盘06/07阅读冲刺”,
+“【+1天】复盘06/07翻译冲刺”,
+]},
+{subject:“六级·写作冲刺”,color:”#f7a8c8”,time:“1.5h”,items:[
+“限时写作×1篇（最后练习）”,
+“背诵写作模板+开头结尾各3套”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“轻量复习，不做新题”,”【+14天】复盘05/25的错题”,”【+7天】复盘06/01的错题”,”【+3天】复盘06/05的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“轻量复习”,”【+14天】复盘05/25自控内容（重看笔记+做例题）”,”【+7天】复盘06/01自控内容（重看笔记+做例题）”,”【+3天】复盘06/05自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“高频词最后过一遍”]},
+]
+},
+{
+date:“06/09”,day:“周一”,phase:“考前”,note:“考前一天”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“0.75h”,items:[
+“【+7天】复盘06/02模拟②（第14套）”,
+“【+3天】复盘06/06写作冲刺”,
+“【+1天】复盘06/08写作冲刺”,
+]},
+{subject:“六级·轻量复习”,color:”#c8a8f8”,time:“1.5h”,items:[
+“看写作模板一张纸（不背新内容）”,
+“翻译核心词汇默背”,
+“听力做1-2道热身保持感觉”,
+]},
+{subject:“考试准备”,color:”#6b6b8a”,time:”—”,items:[
+“准备准考证、身份证、2B铅笔、黑笔”,
+“调好闹钟”,
+“23点前入睡！睡眠最重要”,
+]},
+{subject:“数学/自控”,color:”#4a4a6a”,time:“1h”,items:[
+“随意翻翻笔记，不学新内容”,
+“【+14天】复盘05/26的错题/自控”,
+“【+7天】复盘06/02的错题/自控”,
+“【+3天】复盘06/06的错题/自控”,
+]},
+]
+},
+{
+date:“06/10”,day:“周二”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘06/03模拟③（第15套）”,
+“【+3天】复盘06/07听力冲刺”,
+“【+3天】复盘06/07阅读冲刺”,
+“【+3天】复盘06/07翻译冲刺”,
+“【+1天】复盘06/09轻量复习”,
+]},
+{subject:“六级·最后冲刺”,color:”#f7a8a8”,time:“1.5h”,items:[
+“写作句式最后默背”,
+“听力热身：做1套短对话保持状态”,
+“翻译词汇默背”,
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[
+“强化36讲继续推进 1h”,“660题少量保持手感”,
+“【+14天】复盘05/27的错题”,
+“【+7天】复盘06/03的错题”,
+“【+3天】复盘06/07的错题”,
+]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[
+“卢姥爷视频 1h”,
+“【+14天】复盘05/27自控内容（重看笔记+做例题）”,
+“【+7天】复盘06/03自控内容（重看笔记+做例题）”,
+“【+3天】复盘06/07自控内容（重看笔记+做例题）”,
+]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“复习高频词”]},
+]
+},
+];
+
+function Schedule() {
+const [selected, setSelected] = useState(null);
+const [checked, setChecked] = useState(() => {
+try { return JSON.parse(localStorage.getItem(“sched_v4”) || “{}”); } catch { return {}; }
+});
+
+function toggleCheck(dateStr, taskIdx, itemIdx) {
+const key = `${dateStr}-${taskIdx}-${itemIdx}`;
+const next = { …checked, [key]: !checked[key] };
+setChecked(next);
+try { localStorage.setItem(“sched_v4”, JSON.stringify(next)); } catch {}
+}
+
+function getDayProgress(day) {
+let total = 0, done = 0;
+day.tasks.forEach((t, ti) => t.items.forEach((_, ii) => {
+total++;
+if (checked[`${day.date}-${ti}-${ii}`]) done++;
+}));
+return { total, done };
+}
+
+const selectedDay = selected !== null ? schedule[selected] : null;
+
+const [editedItems, setEditedItems] = useState(() => {
+try { return JSON.parse(localStorage.getItem(“sched_edits”) || “{}”); } catch { return {}; }
+});
+const [editingKey, setEditingKey] = useState(null);
+const [editingVal, setEditingVal] = useState(””);
+
+function getItemText(dateStr, ti, ii, defaultText) {
+return editedItems[`${dateStr}-${ti}-${ii}`] || defaultText;
+}
+function startEdit(e, dateStr, ti, ii, currentText) {
+e.stopPropagation();
+setEditingKey(`${dateStr}-${ti}-${ii}`);
+setEditingVal(currentText);
+}
+function saveEdit(dateStr, ti, ii) {
+const key = `${dateStr}-${ti}-${ii}`;
+const next = { …editedItems, [key]: editingVal };
+setEditedItems(next);
+try { localStorage.setItem(“sched_edits”, JSON.stringify(next)); } catch {}
+setEditingKey(null);
+}
+
+return (
+<div style={{ minHeight:“100vh”, background:”#0c0c10”, color:”#e8e4d9”, fontFamily:”‘Noto Serif SC’,‘SimSun’,serif”, paddingBottom:80 }}>
+<div style={{ background:“linear-gradient(135deg,#13131f,#0c0c10)”, borderBottom:“1px solid #1e1e2e”, padding:“24px 20px 16px”, position:“sticky”, top:0, zIndex:10 }}>
+<div style={{ maxWidth:480, margin:“0 auto” }}>
+<div style={{ fontSize:10, letterSpacing:5, color:”#4a4a6a”, fontFamily:“monospace”, marginBottom:4 }}>STUDY PLAN · 六级冲刺</div>
+<div style={{ fontSize:20, fontWeight:700, letterSpacing:1 }}>5月22日 → 6月10日</div>
+<div style={{ display:“flex”, gap:12, marginTop:10, flexWrap:“wrap” }}>
+{[
+{label:“专项”,color:”#7eb8f7”},{label:“模拟”,color:”#f7c87e”},
+{label:“冲刺”,color:”#f7a8a8”},{label:“复盘”,color:”#f77e7e”},{label:“休息”,color:”#4a4a6a”},
+].map(s=>(
+<div key={s.label} style={{ display:“flex”, alignItems:“center”, gap:5 }}>
+<div style={{ width:8, height:8, borderRadius:2, background:s.color }}/>
+<span style={{ fontSize:11, color:”#6b6b8a” }}>{s.label}</span>
+</div>
+))}
+</div>
+</div>
+</div>
+
+```
+  <div style={{ maxWidth:480, margin:"0 auto", padding:"16px 16px 0" }}>
+    {!selectedDay && (
+      <div>
+        {schedule.map((day, idx) => {
+          const {total, done} = getDayProgress(day);
+          const pct = total ? Math.round((done/total)*100) : 0;
+          const phaseColor = PHASE_COLOR[day.phase] || "#6b6b8a";
+          const hasReview = day.tasks.some(t => t.subject.includes("复盘"));
+          return (
+            <div key={day.date} onClick={()=>setSelected(idx)} style={{
+              background: day.rest ? "#111118" : "#15151f",
+              borderRadius:12, padding:"13px 16px", marginBottom:8,
+              border:`1px solid ${day.note ? "#3a2a1a" : "#1e1e2e"}`,
+              cursor:"pointer", display:"flex", alignItems:"center", gap:12,
+              opacity: day.rest ? 0.65 : 1,
+            }}>
+              <div style={{ width:3, height:40, background:phaseColor, borderRadius:2, flexShrink:0 }}/>
+              <div style={{ minWidth:40, textAlign:"center" }}>
+                <div style={{ fontSize:17, fontWeight:700, color: day.note ? "#f7c87e" : "#e8e4d9" }}>{day.date.slice(3)}</div>
+                <div style={{ fontSize:10, color:"#4a4a6a", marginTop:1 }}>{day.day}</div>
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                  <span style={{ fontSize:10, color:phaseColor, fontWeight:600, letterSpacing:1 }}>{day.phase}</span>
+                  {hasReview && <span style={{ fontSize:10, color:"#f77e7e" }}>· 含复盘</span>}
+                  {day.note && <span style={{ fontSize:10, color:"#f7c87e" }}>· {day.note}</span>}
+                </div>
+                {day.rest ? (
+                  <div style={{ fontSize:12, color:"#3a3a5a" }}>🌿 休息，充电</div>
+                ) : (
+                  <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                    {day.tasks.map((t,i)=>(
+                      <span key={i} style={{ fontSize:10, padding:"2px 7px", borderRadius:4, background:t.color+"18", color:t.color }}>
+                        {t.subject.includes("·") ? t.subject.split("·")[1] : t.subject} {t.time}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {!day.rest && (
+                <div style={{ minWidth:32, textAlign:"right" }}>
+                  <div style={{ fontSize:11, color: pct===100 ? "#a8d8a8" : "#3a3a5a", fontWeight:700 }}>
+                    {pct===100 ? "✓" : `${pct}%`}
+                  </div>
+                  <div style={{ width:32, height:3, background:"#1e1e2e", borderRadius:2, marginTop:4 }}>
+                    <div style={{ width:`${pct}%`, height:"100%", background:"#a8d8a8", borderRadius:2 }}/>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {selectedDay && (
+      <div>
+        <button onClick={()=>setSelected(null)} style={{ background:"none", border:"none", color:"#6b6b8a", cursor:"pointer", fontSize:13, padding:"0 0 16px 0", fontFamily:"'Noto Serif SC',serif" }}>← 返回</button>
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:24, fontWeight:700 }}>{selectedDay.date} {selectedDay.day}</div>
+          <div style={{ fontSize:12, color:PHASE_COLOR[selectedDay.phase], marginTop:4, fontWeight:600 }}>{selectedDay.phase}</div>
+          {selectedDay.note && <div style={{ fontSize:12, color:"#f7c87e", marginTop:2 }}>⚡ {selectedDay.note}</div>}
+          {selectedDay.rest && <div style={{ fontSize:13, color:"#4a4a6a", marginTop:4 }}>今天好好休息 🌿</div>}
+        </div>
+
+        {selectedDay.tasks.map((task, ti)=>(
+          <div key={ti} style={{ background:"#15151f", borderRadius:12, padding:16, marginBottom:12, border:`1px solid ${task.color}28` }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ width:3, height:16, background:task.color, borderRadius:2 }}/>
+                <span style={{ fontSize:14, fontWeight:700, color:task.color }}>{task.subject}</span>
+              </div>
+              <span style={{ fontSize:12, color:"#4a4a6a" }}>{task.time}</span>
+            </div>
+            {task.items.map((item, ii)=>{
+              const key=`${selectedDay.date}-${ti}-${ii}`;
+              const done=!!checked[key];
+              const isEditing = editingKey === key;
+              const displayText = getItemText(selectedDay.date, ti, ii, item);
+              return (
+                <div key={ii} style={{
+                  display:"flex", alignItems:"flex-start", gap:10, padding:"8px 0",
+                  borderBottom: ii<task.items.length-1 ? "1px solid #1a1a24" : "none",
+                }}>
+                  <div onClick={()=>toggleCheck(selectedDay.date,ti,ii)} style={{
+                    width:18, height:18, borderRadius:5,
+                    border:`1.5px solid ${done ? task.color : "#2a2a3a"}`,
+                    background: done ? task.color+"33" : "transparent",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    flexShrink:0, marginTop:1, cursor:"pointer",
+                  }}>
+                    {done && <span style={{ fontSize:11, color:task.color }}>✓</span>}
+                  </div>
+                  {isEditing ? (
+                    <div style={{ flex:1, display:"flex", gap:6 }}>
+                      <input autoFocus value={editingVal} onChange={e=>setEditingVal(e.target.value)}
+                        onKeyDown={e=>{ if(e.key==="Enter") saveEdit(selectedDay.date,ti,ii); if(e.key==="Escape") setEditingKey(null); }}
+                        style={{ flex:1, background:"#0c0c10", border:`1px solid ${task.color}`, borderRadius:6, padding:"3px 8px", color:"#e8e4d9", fontSize:13, fontFamily:"'Noto Serif SC',serif" }}
+                      />
+                      <button onClick={()=>saveEdit(selectedDay.date,ti,ii)} style={{ background:task.color, border:"none", borderRadius:6, padding:"3px 10px", color:"#0c0c10", fontWeight:700, cursor:"pointer", fontSize:12 }}>✓</button>
+                      <button onClick={()=>setEditingKey(null)} style={{ background:"#2a2a3a", border:"none", borderRadius:6, padding:"3px 8px", color:"#6b6b8a", cursor:"pointer", fontSize:12 }}>✕</button>
+                    </div>
+                  ) : (
+                    <span onDoubleClick={e=>startEdit(e,selectedDay.date,ti,ii,displayText)}
+                      style={{ flex:1, fontSize:13, color: done ? "#3a3a5a" : "#c8c4b9", textDecoration: done ? "line-through" : "none", lineHeight:1.6, cursor:"text" }}>
+                      {displayText}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+
+        {!selectedDay.rest && (()=>{
+          const {total, done} = getDayProgress(selectedDay);
+          return (
+            <div style={{ background:"#1a1a24", borderRadius:10, padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:13, color:"#6b6b8a" }}>今日进度</span>
+              <span style={{ fontSize:14, fontWeight:700, color: done===total ? "#a8d8a8" : "#7eb8f7" }}>
+                {done}/{total} {done===total ? "· 全部完成！" : ""}
+              </span>
+            </div>
+          );
+        })()}
+      </div>
+    )}
+  </div>
+</div>
+```
+
+);
+}
+
+const REVIEW_INTERVALS = [3, 7, 14];
+
+function getTodayStr() {
+return new Date().toISOString().slice(0, 10);
+}
+function addDays(dateStr, days) {
+const d = new Date(dateStr);
+d.setDate(d.getDate() + days);
+return d.toISOString().slice(0, 10);
+}
+function formatDate(dateStr) {
+const d = new Date(dateStr + “T00:00:00”);
+return d.toLocaleDateString(“zh-CN”, { month: “numeric”, day: “numeric”, weekday: “short” });
+}
+
+const CHAPTERS = [
+“函数·极限·连续”,“导数与微分”,“微分中值定理·导数应用”,
+“不定积分”,“定积分及应用”,“多元函数微分学”,“重积分”,“级数”,“微分方程”,
+];
+const MISTAKE_TYPES = [“概念不清”, “方法不会”, “计算失误”, “思路有漏洞”];
+const CET_TYPES = [“阅读”, “听力”, “翻译”];
+const CET_YEARS = [“2024”, “2023”, “2022”, “2021”, “2020”, “2019”, “2018”];
+
+const inputStyle = {
+width: “100%”, padding: “10px 12px”, borderRadius: 8,
+background: “#0f0f13”, border: “1px solid #2a2a3a”,
+color: “#e8e4d9”, fontSize: 13,
+fontFamily: “‘Noto Serif SC’, serif”,
+boxSizing: “border-box”,
+};
+
+function Field({ label, children }) {
+return (
+<div style={{ marginBottom: 16 }}>
+<div style={{ fontSize: 11, color: “#6b6b8a”, marginBottom: 6, letterSpacing: 1 }}>{label}</div>
+{children}
+</div>
+);
+}
+
+function TaskCard({ item, review, reviewIdx, onDone, isOverdue, isWord }) {
+return (
+<div style={{
+background: isOverdue ? “#1e1218” : “#1a1a24”,
+borderRadius: 12, padding: “14px”, marginBottom: 10,
+border: `1px solid ${isOverdue ? "#5a2a3a" : "#2a2a3a"}`,
+}}>
+<div style={{ display: “flex”, gap: 8, alignItems: “center”, marginBottom: 6 }}>
+{isOverdue && (
+<span style={{ fontSize: 10, background: “#5a1a1a”, color: “#f77e7e”, padding: “2px 8px”, borderRadius: 4 }}>逾期</span>
+)}
+<span style={{ fontSize: 10, background: isWord ? “#2a1a3a” : “#1a2a3a”, color: isWord ? “#c8a8f8” : “#7eb8f7”, padding: “2px 8px”, borderRadius: 4 }}>
+{isWord ? “📝 单词” : “📐 数学”} · 第{review.interval}天回顾
+</span>
+</div>
+{isWord ? (
+<>
+<div style={{ fontSize: 16, color: “#e8e4d9”, fontWeight: 700 }}>{item.word}</div>
+<div style={{ fontSize: 13, color: “#c8a8f8”, marginTop: 3 }}>{item.meaning}</div>
+<div style={{ fontSize: 11, color: “#6b6b8a”, marginTop: 4 }}>
+{item.year}年 · {item.cetType} · {formatDate(item.date)} 记录
+</div>
+</>
+) : (
+<>
+<div style={{ fontSize: 14, color: “#e8e4d9”, fontWeight: 600 }}>{item.chapter}</div>
+<div style={{ fontSize: 13, color: “#c8c4b9”, marginTop: 2 }}>{item.problem}</div>
+<div style={{ fontSize: 11, color: “#6b6b8a”, marginTop: 4 }}>
+{item.type}{item.note ? ` · ${item.note}` : “”} · {formatDate(item.date)} 做题
+</div>
+</>
+)}
+<button onClick={onDone} style={{
+marginTop: 12, width: “100%”, padding: “10px”, borderRadius: 8, border: “none”,
+background: isOverdue ? “#5a2a2a” : “#1e3a2a”,
+color: isOverdue ? “#f7a8a8” : “#a8d8a8”,
+fontSize: 13, cursor: “pointer”,
+fontFamily: “‘Noto Serif SC’, serif”, fontWeight: 600,
+}}>✓ 标记已回顾</button>
+</div>
+);
+}
+
+function Tracker() {
+const today = getTodayStr();
+const [mode, setMode] = useState(“math”); // math | cet
+const [view, setView] = useState(“today”); // today | add | all
+
+// Math state
+const [mistakes, setMistakes] = useState(() => {
+try { return JSON.parse(localStorage.getItem(“math_mistakes”) || “[]”); } catch { return []; }
+});
+const [mathForm, setMathForm] = useState({
+date: today, chapter: CHAPTERS[0], problem: “”, type: MISTAKE_TYPES[0], note: “”,
+});
+
+// CET words state
+const [words, setWords] = useState(() => {
+try { return JSON.parse(localStorage.getItem(“cet_words”) || “[]”); } catch { return []; }
+});
+const [wordForm, setWordForm] = useState({
+date: today, year: CET_YEARS[0], cetType: CET_TYPES[0], word: “”, meaning: “”,
+});
+
+const [toast, setToast] = useState(””);
+
+// Inline editing
+const [editingId, setEditingId] = useState(null);
+const [editingField, setEditingField] = useState(null);
+const [editingVal, setEditingVal] = useState(””);
+
+function startEdit(e, id, field, val) {
+e.stopPropagation();
+setEditingId(id); setEditingField(field); setEditingVal(val);
+}
+function saveEdit(isMistake) {
+if (isMistake) {
+setMistakes(prev => prev.map(m => m.id === editingId ? { …m, [editingField]: editingVal } : m));
+} else {
+setWords(prev => prev.map(w => w.id === editingId ? { …w, [editingField]: editingVal } : w));
+}
+setEditingId(null); setEditingField(null);
+}
+function EditableText({ id, field, value, isMistake, style }) {
+const isEditing = editingId === id && editingField === field;
+if (isEditing) return (
+<div style={{ display:“flex”, gap:6, alignItems:“center”, flex:1 }}>
+<input autoFocus value={editingVal} onChange={e=>setEditingVal(e.target.value)}
+onKeyDown={e=>{ if(e.key===“Enter”) saveEdit(isMistake); if(e.key===“Escape”) setEditingId(null); }}
+style={{ flex:1, background:”#0f0f13”, border:“1px solid #7eb8f7”, borderRadius:6, padding:“3px 8px”, color:”#e8e4d9”, fontSize:style?.fontSize||13, fontFamily:”‘Noto Serif SC’,serif” }}
+/>
+<button onClick={()=>saveEdit(isMistake)} style={{ background:”#7eb8f7”, border:“none”, borderRadius:6, padding:“3px 10px”, color:”#0c0c10”, fontWeight:700, cursor:“pointer”, fontSize:12 }}>✓</button>
+<button onClick={()=>setEditingId(null)} style={{ background:”#2a2a3a”, border:“none”, borderRadius:6, padding:“3px 8px”, color:”#6b6b8a”, cursor:“pointer”, fontSize:12 }}>✕</button>
+</div>
+);
+return <span onDoubleClick={e=>startEdit(e,id,field,value)} style={{ …style, cursor:“text” }}>{value}</span>;
+}
+
+useEffect(() => { try { localStorage.setItem(“math_mistakes”, JSON.stringify(mistakes)); } catch {} }, [mistakes]);
+useEffect(() => { try { localStorage.setItem(“cet_words”, JSON.stringify(words)); } catch {} }, [words]);
+useEffect(() => {
+if (toast) { const t = setTimeout(() => setToast(””), 2000); return () => clearTimeout(t); }
+}, [toast]);
+
+function makeReviews(date) {
+return REVIEW_INTERVALS.map(d => ({ dueDate: addDays(date, d), interval: d, done: false }));
+}
+
+function addMistake() {
+if (!mathForm.problem.trim()) { setToast(“请填写题目编号”); return; }
+setMistakes(prev => [{ id: Date.now(), …mathForm, reviews: makeReviews(mathForm.date) }, …prev]);
+setMathForm(f => ({ …f, problem: “”, note: “” }));
+setToast(“已添加错题 ✓”); setView(“today”);
+}
+
+function addWord() {
+const bulk = wordForm.bulk || “”;
+const lines = bulk.split(”\n”).map(l => l.trim()).filter(l => l.includes(”:”) && l.trim());
+if (lines.length === 0) { setToast(“请粘贴单词，格式：单词: 释义”); return; }
+const newWords = lines.map(line => {
+const colonIdx = line.indexOf(”:”);
+const word = line.slice(0, colonIdx).trim();
+const meaning = line.slice(colonIdx + 1).trim();
+return { id: Date.now() + Math.random(), date: wordForm.date, year: wordForm.year, cetType: wordForm.cetType, word, meaning, reviews: makeReviews(wordForm.date) };
+}).filter(w => w.word && w.meaning);
+setWords(prev => […newWords, …prev]);
+setWordForm(f => ({ …f, bulk: “” }));
+setToast(`已添加 ${newWords.length} 个单词 ✓`); setView(“today”);
+}
+
+function markMistakeDone(id, idx) {
+setMistakes(prev => prev.map(m => m.id !== id ? m : {
+…m, reviews: m.reviews.map((r, i) => i === idx ? { …r, done: true } : r)
+}));
+}
+function markWordDone(id, idx) {
+setWords(prev => prev.map(w => w.id !== id ? w : {
+…w, reviews: w.reviews.map((r, i) => i === idx ? { …r, done: true } : r)
+}));
+}
+
+// Compute today tasks across both
+function getTasks(items, isWord) {
+const tasks = [];
+items.forEach(item => {
+item.reviews.forEach((r, idx) => {
+if (!r.done && r.dueDate <= today) tasks.push({ item, reviewIdx: idx, review: r, isWord });
+});
+});
+return tasks;
+}
+function getUpcoming(items, isWord) {
+const limit = addDays(today, 7);
+const tasks = [];
+items.forEach(item => {
+item.reviews.forEach((r, idx) => {
+if (!r.done && r.dueDate > today && r.dueDate <= limit) tasks.push({ item, reviewIdx: idx, review: r, isWord });
+});
+});
+return tasks;
+}
+
+const mathTasks = getTasks(mistakes, false);
+const wordTasks = getTasks(words, true);
+const allTodayTasks = […mathTasks, …wordTasks].sort((a, b) => a.review.dueDate.localeCompare(b.review.dueDate));
+const allUpcoming = […getUpcoming(mistakes, false), …getUpcoming(words, true)].sort((a, b) => a.review.dueDate.localeCompare(b.review.dueDate));
+
+const overdueCount = allTodayTasks.filter(t => t.review.dueDate < today).length;
+const todayCount = allTodayTasks.filter(t => t.review.dueDate === today).length;
+
+// Mode-specific tasks
+const modeTasks = mode === “math” ? mathTasks : wordTasks;
+const modeUpcoming = mode === “math” ? getUpcoming(mistakes, false) : getUpcoming(words, true);
+const modeOverdue = modeTasks.filter(t => t.review.dueDate < today).length;
+
+return (
+<div style={{ minHeight: “100vh”, background: “#0f0f13”, color: “#e8e4d9”, fontFamily: “‘Noto Serif SC’,‘SimSun’,serif”, paddingBottom: 80 }}>
+{/* Header */}
+<div style={{ background: “linear-gradient(135deg,#1a1a24,#12121a)”, borderBottom: “1px solid #2a2a3a”, padding: “24px 20px 16px”, position: “sticky”, top: 0, zIndex: 10 }}>
+<div style={{ maxWidth: 480, margin: “0 auto” }}>
+<div style={{ fontSize: 11, letterSpacing: 4, color: “#6b6b8a”, marginBottom: 4, fontFamily: “monospace” }}>考研 · 六级备考系统</div>
+{/* Mode toggle */}
+<div style={{ display: “flex”, gap: 8, marginBottom: 14 }}>
+{[{ key: “math”, label: “📐 数学错题” }, { key: “cet”, label: “📝 六级单词” }].map(m => (
+<button key={m.key} onClick={() => { setMode(m.key); setView(“today”); }} style={{
+flex: 1, padding: “9px 0”, borderRadius: 10, border: “none”,
+background: mode === m.key ? (m.key === “cet” ? “#c8a8f8” : “#7eb8f7”) : “#1e1e2e”,
+color: mode === m.key ? “#0f0f13” : “#6b6b8a”,
+fontWeight: mode === m.key ? 700 : 400, fontSize: 13, cursor: “pointer”,
+fontFamily: “‘Noto Serif SC’,serif”, transition: “all 0.2s”,
+}}>{m.label}</button>
+))}
+</div>
+{/* Stats */}
+<div style={{ display: “flex”, gap: 10 }}>
+{[
+{ label: “今日到期”, val: todayCount, color: “#7eb8f7” },
+{ label: “已逾期”, val: overdueCount, color: overdueCount > 0 ? “#f77e7e” : “#6b6b8a” },
+{ label: “错题”, val: mistakes.length, color: “#a8d8a8” },
+{ label: “单词”, val: words.length, color: “#c8a8f8” },
+].map(s => (
+<div key={s.label} style={{ flex: 1, background: “#1e1e2e”, borderRadius: 8, padding: “8px 4px”, textAlign: “center”, border: “1px solid #2a2a3a” }}>
+<div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.val}</div>
+<div style={{ fontSize: 10, color: “#6b6b8a”, marginTop: 2 }}>{s.label}</div>
+</div>
+))}
+</div>
+</div>
+</div>
+
+```
+  {/* Toast */}
+  {toast && (
+    <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: "#2a3a2a", color: "#a8d8a8", padding: "10px 24px", borderRadius: 20, fontSize: 13, zIndex: 100, border: "1px solid #3a5a3a", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>{toast}</div>
+  )}
+
+  <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px" }}>
+    {/* Nav */}
+    <div style={{ display: "flex", gap: 8, marginTop: 16, marginBottom: 16 }}>
+      {[{ key: "today", label: "📋 今日回顾" }, { key: "add", label: "＋ 添加" }, { key: "all", label: "📚 全部" }].map(tab => (
+        <button key={tab.key} onClick={() => setView(tab.key)} style={{
+          flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+          background: view === tab.key ? (mode === "cet" ? "#c8a8f8" : "#7eb8f7") : "#1e1e2e",
+          color: view === tab.key ? "#0f0f13" : "#6b6b8a",
+          fontWeight: view === tab.key ? 700 : 400, fontSize: 13, cursor: "pointer",
+          fontFamily: "'Noto Serif SC',serif", transition: "all 0.2s",
+        }}>{tab.label}</button>
+      ))}
+    </div>
+
+    {/* TODAY VIEW */}
+    {view === "today" && (
+      <div>
+        {modeTasks.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "50px 20px", color: "#6b6b8a", fontSize: 14 }}>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>✓</div>
+            {mode === "math" ? "今日没有数学错题需要回顾" : "今日没有单词需要回顾"}
+            <div style={{ fontSize: 12, marginTop: 6, color: "#4a4a5a" }}>继续添加，保持记录习惯</div>
+          </div>
+        ) : (
+          <>
+            {modeOverdue > 0 && (
+              <div style={{ background: "#2a1a1a", border: "1px solid #5a2a2a", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#f77e7e" }}>
+                ⚠ 有 {modeOverdue} 条已逾期，请优先完成
+              </div>
+            )}
+            {modeTasks.map(({ item, reviewIdx, review, isWord }) => (
+              <TaskCard
+                key={`${item.id}-${reviewIdx}`}
+                item={item} review={review} reviewIdx={reviewIdx} isWord={isWord}
+                isOverdue={review.dueDate < today}
+                onDone={() => {
+                  isWord ? markWordDone(item.id, reviewIdx) : markMistakeDone(item.id, reviewIdx);
+                  setToast("已完成 ✓");
+                }}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Upcoming */}
+        {modeUpcoming.length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, letterSpacing: 3, color: "#6b6b8a", marginBottom: 10, fontFamily: "monospace" }}>近7天计划</div>
+            {modeUpcoming.map(({ item, reviewIdx, review, isWord }) => (
+              <div key={`up-${item.id}-${reviewIdx}`} style={{ background: "#1a1a24", borderRadius: 10, padding: "12px 14px", marginBottom: 8, border: "1px solid #2a2a3a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 13, color: "#c8c4b9" }}>
+                    {isWord ? item.word : `${item.chapter} · ${item.problem}`}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#6b6b8a", marginTop: 3 }}>
+                    {isWord ? `${item.year}年${item.cetType}` : `第${review.interval}天回顾`}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: isWord ? "#c8a8f8" : "#7eb8f7", background: isWord ? "#1a1a2a" : "#1a2a3a", padding: "4px 10px", borderRadius: 8 }}>
+                  {formatDate(review.dueDate)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* ADD VIEW */}
+    {view === "add" && (
+      <div style={{ background: "#1a1a24", borderRadius: 14, padding: 20, border: "1px solid #2a2a3a" }}>
+        {mode === "math" ? (
+          <>
+            <div style={{ fontSize: 13, color: "#6b6b8a", marginBottom: 18, letterSpacing: 1 }}>添加数学错题</div>
+            <Field label="做题日期">
+              <input type="date" value={mathForm.date} onChange={e => setMathForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
+            </Field>
+            <Field label="章节">
+              <select value={mathForm.chapter} onChange={e => setMathForm(f => ({ ...f, chapter: e.target.value }))} style={inputStyle}>
+                {CHAPTERS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </Field>
+            <Field label="题目编号">
+              <input type="text" value={mathForm.problem} onChange={e => setMathForm(f => ({ ...f, problem: e.target.value }))} placeholder="如：第138题" style={inputStyle} />
+            </Field>
+            <Field label="错误类型">
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {MISTAKE_TYPES.map(t => (
+                  <button key={t} onClick={() => setMathForm(f => ({ ...f, type: t }))} style={{
+                    padding: "7px 14px", borderRadius: 8, border: "none",
+                    background: mathForm.type === t ? "#7eb8f7" : "#2a2a3a",
+                    color: mathForm.type === t ? "#0f0f13" : "#6b6b8a",
+                    fontSize: 12, cursor: "pointer", fontFamily: "'Noto Serif SC',serif",
+                  }}>{t}</button>
+                ))}
+              </div>
+            </Field>
+            <Field label="备注（可选）">
+              <input type="text" value={mathForm.note} onChange={e => setMathForm(f => ({ ...f, note: e.target.value }))} placeholder="记录解题思路或关键点" style={inputStyle} />
+            </Field>
+            <div style={{ background: "#1e2a1e", borderRadius: 10, padding: "10px 14px", marginBottom: 18, fontSize: 12, color: "#a8d8a8" }}>
+              📅 自动安排 +3天、+7天、+14天 回顾
+            </div>
+            <button onClick={addMistake} style={{ width: "100%", padding: 14, borderRadius: 10, border: "none", background: "#7eb8f7", color: "#0f0f13", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "'Noto Serif SC',serif" }}>添加错题</button>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: "#6b6b8a", marginBottom: 18, letterSpacing: 1 }}>批量添加六级单词</div>
+            <Field label="记录日期">
+              <input type="date" value={wordForm.date} onChange={e => setWordForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
+            </Field>
+            <Field label="真题年份">
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {CET_YEARS.map(y => (
+                  <button key={y} onClick={() => setWordForm(f => ({ ...f, year: y }))} style={{
+                    padding: "7px 12px", borderRadius: 8, border: "none",
+                    background: wordForm.year === y ? "#c8a8f8" : "#2a2a3a",
+                    color: wordForm.year === y ? "#0f0f13" : "#6b6b8a",
+                    fontSize: 12, cursor: "pointer", fontFamily: "'Noto Serif SC',serif",
+                  }}>{y}</button>
+                ))}
+              </div>
+            </Field>
+            <Field label="题型">
+              <div style={{ display: "flex", gap: 8 }}>
+                {CET_TYPES.map(t => (
+                  <button key={t} onClick={() => setWordForm(f => ({ ...f, cetType: t }))} style={{
+                    flex: 1, padding: "9px 0", borderRadius: 8, border: "none",
+                    background: wordForm.cetType === t ? "#c8a8f8" : "#2a2a3a",
+                    color: wordForm.cetType === t ? "#0f0f13" : "#6b6b8a",
+                    fontSize: 13, cursor: "pointer", fontFamily: "'Noto Serif SC',serif",
+                  }}>{t}</button>
+                ))}
+              </div>
+            </Field>
+            <Field label="批量粘贴（每行一个）">
+              <div style={{ fontSize: 11, color: "#4a4a6a", marginBottom: 6 }}>格式：单词: 释义</div>
+              <textarea
+                value={wordForm.bulk || ""}
+                onChange={e => setWordForm(f => ({ ...f, bulk: e.target.value }))}
+                placeholder={"ambiguous: 模棱两可的\nsubstantial: 大量的，实质性的\npersist: 坚持，持续"}
+                rows={6}
+                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.7 }}
+              />
+            </Field>
+            {/* Preview */}
+            {wordForm.bulk && (() => {
+              const lines = wordForm.bulk.split("\n").filter(l => l.includes(":") && l.trim());
+              return lines.length > 0 ? (
+                <div style={{ background: "#1a1a2e", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#c8a8f8" }}>
+                  ✓ 识别到 <strong>{lines.length}</strong> 个单词，将全部添加
+                </div>
+              ) : (
+                <div style={{ background: "#2a1a1a", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#f77e7e" }}>
+                  ⚠ 格式需为「单词: 释义」，用冒号分隔
+                </div>
+              );
+            })()}
+            <div style={{ background: "#1e1a2e", borderRadius: 10, padding: "10px 14px", marginBottom: 18, fontSize: 12, color: "#c8a8f8" }}>
+              📅 每个单词自动安排 +3天、+7天、+14天 回顾
+            </div>
+            <button onClick={addWord} style={{ width: "100%", padding: 14, borderRadius: 10, border: "none", background: "#c8a8f8", color: "#0f0f13", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "'Noto Serif SC',serif" }}>批量添加</button>
+          </>
+        )}
+      </div>
+    )}
+
+    {/* ALL VIEW */}
+    {view === "all" && (
+      <div>
+        {(mode === "math" ? mistakes : words).length === 0 ? (
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "#6b6b8a" }}>
+            {mode === "math" ? "还没有错题记录" : "还没有单词记录"}
+          </div>
+        ) : (
+          (mode === "math" ? mistakes : words).map(item => {
+            const doneCount = item.reviews.filter(r => r.done).length;
+            const isWord = mode === "cet";
+            return (
+              <div key={item.id} style={{ background: "#1a1a24", borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid #2a2a3a" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    {isWord ? (
+                      <>
+                        <EditableText id={item.id} field="word" value={item.word} isMistake={false} style={{ fontSize:15, color:"#e8e4d9", fontWeight:700 }} />
+                        <EditableText id={item.id} field="meaning" value={item.meaning} isMistake={false} style={{ fontSize:13, color:"#c8a8f8", marginTop:2, display:"block" }} />
+                        <div style={{ fontSize: 11, color: "#6b6b8a", marginTop: 4 }}>{item.year}年 · {item.cetType} · {formatDate(item.date)}</div>
+                      </>
+                    ) : (
+                      <>
+                        <EditableText id={item.id} field="chapter" value={item.chapter} isMistake={true} style={{ fontSize:14, color:"#e8e4d9", fontWeight:600 }} />
+                        <EditableText id={item.id} field="problem" value={item.problem} isMistake={true} style={{ fontSize:13, color:"#7eb8f7", marginTop:2, display:"block" }} />
+                        <div style={{ fontSize: 11, color: "#6b6b8a", marginTop: 4 }}>{item.type}{item.note ? ` · ${item.note}` : ""} · {formatDate(item.date)}</div>
+                      </>
+                    )}
+                  </div>
+                  <button onClick={() => isWord ? setWords(p => p.filter(w => w.id !== item.id)) : setMistakes(p => p.filter(m => m.id !== item.id))}
+                    style={{ background: "none", border: "none", color: "#4a4a5a", cursor: "pointer", fontSize: 16, padding: "0 4px" }}>×</button>
+                </div>
+                <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                  {item.reviews.map((r, i) => (
+                    <div key={i} style={{
+                      flex: 1, padding: "5px 0", borderRadius: 6, textAlign: "center",
+                      background: r.done ? "#1e3a1e" : r.dueDate <= today ? "#3a1e1e" : "#1e1e2e",
+                      border: `1px solid ${r.done ? "#3a6a3a" : r.dueDate <= today ? "#6a3a3a" : "#2a2a3a"}`,
+                      fontSize: 10, color: r.done ? "#a8d8a8" : r.dueDate <= today ? "#f77e7e" : "#6b6b8a",
+                    }}>
+                      +{r.interval}天<br />{r.done ? "✓" : formatDate(r.dueDate)}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: "#6b6b8a", marginTop: 6 }}>回顾进度：{doneCount}/{item.reviews.length}</div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    )}
+  </div>
+</div>
+```
+
+);
+}
+
+function App() {
+const [tab, setTab] = useState(“schedule”);
+return (
+<div style={{ minHeight: “100vh”, background: “#0c0c10” }}>
+{tab === “schedule” ? <Schedule /> : <Tracker />}
+<div style={{
+position: “fixed”, bottom: 0, left: 0, right: 0,
+background: “#13131f”, borderTop: “1px solid #1e1e2e”,
+display: “flex”, zIndex: 100, paddingBottom: “env(safe-area-inset-bottom)”,
+}}>
+{[
+{ key: “schedule”, label: “📋 日程表” },
+{ key: “tracker”, label: “📚 错题/单词” },
+].map(t => (
+<button key={t.key} onClick={() => setTab(t.key)} style={{
+flex: 1, padding: “12px 0”, border: “none”, background: “none”,
+color: tab === t.key ? “#7eb8f7” : “#4a4a6a”,
+fontWeight: tab === t.key ? 700 : 400,
+fontSize: 13, cursor: “pointer”,
+fontFamily: “‘Noto Serif SC’, serif”,
+borderTop: tab === t.key ? “2px solid #7eb8f7” : “2px solid transparent”,
+}}>{t.label}</button>
+))}
+</div>
+</div>
+);
+}
+
+ReactDOM.createRoot(document.getElementById(“root”)).render(<App />);
+</script>
+
+</body>
+</html>
