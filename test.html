@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>备考工具</title>
+<style>
+body{background:#0c0c10;color:#e8e4d9;font-family:sans-serif;padding:20px}
+.card{background:#15151f;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #2a2a3a}
+.hdr{background:#13131f;padding:16px;margin:-20px -20px 16px;border-bottom:1px solid #1e1e2e}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div style="font-size:11px;color:#4a4a6a">STUDY PLAN</div>
+  <div style="font-size:20px;font-weight:700">5月22日 → 6月10日</div>
+</div>
+<div id="list">
+  <div class="card" style="color:#f77e7e">JS未执行</div>
+</div>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+  var el = document.getElementById("list");
+  var html = "";
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">05/22 周四</strong> 专项</div>";
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">05/23 周五</strong> 专项</div>";
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">05/24 周六</strong> 专项</div>";
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">05/25 周日</strong> 专项</div>";
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">05/26 周一</strong> 专项</div>";
+  html += "<div class=\"card\"><strong style=\"color:#a8d8a8\">05/27 周二</strong> 专项</div>";
+  html += "<div class=\"card\" style=\"opacity:0.6\"><strong style=\"color:#6b6b8a\">05/28 周三</strong> 休息</div>";
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">05/29 周四</strong> 专项</div>";
+  el.innerHTML = html;
+});
+</script>
+</body>
+</html>
