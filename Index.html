@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>备考工具</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0c0c10;color:#e8e4d9;font-family:'PingFang SC',sans-serif;padding-bottom:70px}
+.hdr{background:#13131f;border-bottom:1px solid #1e1e2e;padding:20px 16px 14px;position:sticky;top:0;z-index:10}
+.hdr h1{font-size:18px;font-weight:700;margin-bottom:4px}
+.hdr p{font-size:11px;color:#4a4a6a;letter-spacing:2px}
+.btabs{display:flex;background:#13131f;border-top:1px solid #1e1e2e;position:fixed;bottom:0;left:0;right:0;z-index:10}
+.btab{flex:1;padding:12px 0;border:none;background:none;color:#4a4a6a;font-size:13px;cursor:pointer;border-top:2px solid transparent}
+.btab.on{color:#7eb8f7;border-top-color:#7eb8f7;font-weight:700}
+.pg{display:none;padding:12px 16px}
+.pg.on{display:block}
+.card{background:#15151f;border-radius:12px;padding:13px 16px;margin-bottom:8px;border:1px solid #1e1e2e;cursor:pointer;display:flex;align-items:center;gap:12px}
+.card.rest{opacity:.6}
+.pbar{width:3px;height:40px;border-radius:2px;flex-shrink:0}
+.ddate{min-width:40px;text-align:center}
+.dnum{font-size:17px;font-weight:700}
+.dwd{font-size:10px;color:#4a4a6a;margin-top:2px}
+.dinfo{flex:1;min-width:0}
+.plabel{font-size:10px;font-weight:600;letter-spacing:1px;margin-bottom:4px}
+.pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{font-size:10px;padding:2px 7px;border-radius:4px}
+.prg{min-width:32px;text-align:right}
+.pnum{font-size:11px;font-weight:700;color:#3a3a5a}
+.pnum.ok{color:#a8d8a8}
+.pbg{width:32px;height:3px;background:#1e1e2e;border-radius:2px;margin-top:4px}
+.pfill{height:100%;background:#a8d8a8;border-radius:2px}
+.back{background:none;border:none;color:#6b6b8a;font-size:13px;cursor:pointer;padding:0 0 16px}
+.dtitle{font-size:22px;font-weight:700;margin-bottom:4px}
+.tblock{background:#15151f;border-radius:12px;padding:16px;margin-bottom:12px}
+.thead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.tname{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.tbar{width:3px;height:16px;border-radius:2px}
+.ttime{font-size:12px;color:#4a4a6a}
+.item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #1a1a24;cursor:pointer}
+.item:last-child{border-bottom:none}
+.cb{width:18px;height:18px;border-radius:5px;border:1.5px solid #2a2a3a;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.itext{flex:1;font-size:13px;color:#c8c4b9;line-height:1.6}
+.itext.done{color:#3a3a5a;text-decoration:line-through}
+.dtot{background:#1a1a24;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.dtot span{font-size:13px;color:#6b6b8a}
+.dtot strong{font-size:14px;font-weight:700;color:#7eb8f7}
+.dtot strong.ok{color:#a8d8a8}
+/* tracker */
+.msw{display:flex;gap:8px;margin:12px 0}
+.mbtn{flex:1;padding:10px 0;border-radius:10px;border:none;background:#1e1e2e;color:#6b6b8a;font-size:13px;cursor:pointer}
+.mbtn.on{background:#7eb8f7;color:#0c0c10;font-weight:700}
+.mbtn.on.cet{background:#c8a8f8}
+.ntabs{display:flex;gap:8px;margin-bottom:12px}
+.ntab{flex:1;padding:10px 0;border-radius:10px;border:none;background:#1e1e2e;color:#6b6b8a;font-size:13px;cursor:pointer}
+.ntab.on{background:#7eb8f7;color:#0c0c10;font-weight:700}
+.ntab.on.cet{background:#c8a8f8}
+.empty{text-align:center;padding:50px 20px;color:#6b6b8a;font-size:14px}
+.rc{background:#15151f;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #2a2a3a}
+.rc.ov{background:#1e1218;border-color:#5a2a3a}
+.badge{font-size:10px;padding:2px 8px;border-radius:4px;margin-right:5px;display:inline-block;margin-bottom:5px}
+.dbtn{margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#1e3a2a;color:#a8d8a8;font-size:13px;cursor:pointer;font-weight:600}
+.dbtn.ov{background:#5a2a2a;color:#f7a8a8}
+.fb{background:#1a1a24;border-radius:14px;padding:20px;border:1px solid #2a2a3a}
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:11px;color:#6b6b8a;margin-bottom:6px;letter-spacing:1px}
+.fld input,.fld select,.fld textarea{width:100%;padding:10px 12px;border-radius:8px;background:#0f0f13;border:1px solid #2a2a3a;color:#e8e4d9;font-size:13px;font-family:inherit}
+.fld textarea{resize:vertical;line-height:1.7}
+.cg{display:flex;gap:8px;flex-wrap:wrap}
+.ch{padding:7px 14px;border-radius:8px;border:none;background:#2a2a3a;color:#6b6b8a;font-size:12px;cursor:pointer}
+.ch.on{background:#7eb8f7;color:#0c0c10;font-weight:700}
+.ch.on.cet{background:#c8a8f8}
+.sbtn{width:100%;padding:14px;border-radius:10px;border:none;background:#7eb8f7;color:#0c0c10;font-weight:700;font-size:15px;cursor:pointer}
+.sbtn.cet{background:#c8a8f8}
+.hint{background:#1e2a1e;border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:12px;color:#a8d8a8}
+.hint.cet{background:#1e1a2e;color:#c8a8f8}
+.ac{background:#1a1a24;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #2a2a3a}
+.pips{display:flex;gap:6px;margin-top:10px}
+.pip{flex:1;padding:5px 0;border-radius:6px;text-align:center;font-size:10px}
+.xbtn{background:none;border:none;color:#4a4a5a;cursor:pointer;font-size:16px;padding:0 4px}
+.stats{display:flex;gap:10px;margin-top:10px}
+.stat{flex:1;background:#1e1e2e;border-radius:8px;padding:8px 4px;text-align:center;border:1px solid #2a2a3a}
+.stat .v{font-size:18px;font-weight:700}
+.stat .l{font-size:10px;color:#6b6b8a;margin-top:2px}
+.upc{margin-top:24px}
+.upci{background:#1a1a24;border-radius:10px;padding:12px 14px;margin-bottom:8px;border:1px solid #2a2a3a;display:flex;justify-content:space-between;align-items:center}
+.dc{font-size:12px;padding:4px 10px;border-radius:8px}
+</style>
+</head>
+<body>
+<div id="sp">
+  <div class="hdr"><p>STUDY PLAN · 六级冲刺</p><h1>5月22日 → 6月10日</h1></div>
+  <div id="sl" class="pg on"></div>
+  <div id="sd" style="padding:12px 16px;display:none"></div>
+</div>
+<div id="tp" style="display:none">
+  <div class="hdr"><p>备考系统</p><h1>数学错题 · 六级单词</h1><div class="stats" id="ts"></div></div>
+  <div style="padding:0 16px">
+    <div class="msw">
+      <button class="mbtn on" onclick="setMode('math')">📐 数学错题</button>
+      <button class="mbtn" onclick="setMode('cet')">📝 六级单词</button>
+    </div>
+    <div class="ntabs">
+      <button class="ntab on" onclick="setTV('today')">📋 今日</button>
+      <button class="ntab" onclick="setTV('add')">＋ 添加</button>
+      <button class="ntab" onclick="setTV('all')">📚 全部</button>
+    </div>
+  </div>
+  <div id="tc" style="padding:0 16px"></div>
+</div>
+<div class="btabs">
+  <button class="btab on" onclick="showPg('s')">📋 日程表</button>
+  <button class="btab" onclick="showPg('t')">📚 错题/单词</button>
+</div>
+<script>
+const PC={"专项":"#7eb8f7","专项→模拟":"#a8d8a8","模拟":"#f7c87e","冲刺":"#f7a8a8","考前":"#c8a8f8","休息":"#3a3a5a"};
+const CHAPTERS=["函数·极限·连续","导数与微分","微分中值定理·导数应用","不定积分","定积分及应用","多元函数微分学","重积分","级数","微分方程"];
+const MTYPES=["概念不清","方法不会","计算失误","思路有漏洞"];
+const CTYPES=["阅读","听力","翻译"];
+const CYEARS=["2024","2023","2022","2021","2020","2019","2018"];
+
+const schedule=[
+// ── 专项阶段 ──
+{
+date:“05/22”,day:“周四”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第1套听力：短对话+长对话+讲座全做”,
+“精听错题：暂停回放，听写关键句”,
+“总结转折词出题规律（but/however/actually后是答案）”
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“1h”,items:[
+“背范文×2篇（议论文类）”,
+“摘抄核心句式10条”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题对应章节10题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/23”,day:“周五”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“0.5h”,items:[
+“【+1天】复盘05/22听力（第1套）”,
+“【+1天】复盘05/22写作”
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第2套阅读：长篇匹配（计时15min）+仔细阅读×2篇（计时25min）”,
+“复盘定位技巧，标记出题句”
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第2套翻译段落×1，对照答案总结差距”,
+“积累中国文化词汇：春节/丝绸之路/书法等10个”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题+错题回顾”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/24”,day:“周六”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“0.5h”,items:[
+“【+1天】复盘05/23阅读（第2套）”,
+“【+1天】复盘05/23翻译（第2套）”
+]},
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第3套听力：全做，重点听讲座部分”,
+“整理易错词汇10个，练习边听边记关键词”
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“1h”,items:[
+“限时写作①×1篇（严格45分钟）”,
+“对照范文自评，找差距”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/25”,day:“周日”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+3天】复盘05/22听力（第1套）”,
+“【+3天】复盘05/22写作”,
+“【+1天】复盘05/24听力（第3套）”,
+“【+1天】复盘05/24写作①”
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第4套阅读：长篇匹配+仔细阅读（计时35min内完成）”,
+“总结长篇匹配策略：先看题干再扫文章”
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第4套翻译段落×1”,
+“积累经济词汇：可持续发展/人工智能等10个”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“本周660题错题集中回顾”,”【+3天】复盘05/22的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+3天】复盘05/22自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/26”,day:“周一”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+3天】复盘05/23阅读（第2套）”,
+“【+3天】复盘05/23翻译（第2套）”,
+“【+1天】复盘05/25阅读（第4套）”,
+“【+1天】复盘05/25翻译（第4套）”
+]},
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第5套听力：全做，精听长对话部分”,
+“练习选项预读技巧：利用间隔时间看下题选项”
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“0.5h”,items:[
+“背范文×2篇（现象分析类）”,
+“整理开头/结尾万能句式各3套”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题”,”【+3天】复盘05/23的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+3天】复盘05/23自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/27”,day:“周二”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+3天】复盘05/24听力（第3套）”,
+“【+3天】复盘05/24写作①”,
+“【+1天】复盘05/26听力（第5套）”,
+“【+1天】复盘05/26写作”
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第6套阅读：长篇匹配+仔细阅读”,
+“计时训练：全部控制在35分钟内完成”,
+“整理高频干扰选项规律”
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第6套翻译段落×1”,
+“积累科技词汇：量子计算/碳中和等10个”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“2h”,items:[“强化36讲 1.5h”,“660题10题+错题回顾”,”【+3天】复盘05/24的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+3天】复盘05/24自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/28”,day:“周三”,phase:“休息”,rest:true,
+tasks:[
+{subject:“休息日”,color:”#6b6b8a”,time:“随意”,items:[
+“出门运动/散步 40min”,
+“完全放松，不碰课本”,
+“⚠ 可选：复盘05/25阅读+翻译（+3天）、05/27阅读+翻译（+1天）”
+]}
+]
+},
+{
+date:“05/29”,day:“周四”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/22听力（第1套）”,
+“【+7天】复盘05/22写作”,
+“【+3天】复盘05/26听力（第5套）”,
+“【+3天】复盘05/26写作”
+]},
+{subject:“六级·听力”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第7套听力：全做，重点讲座题”,
+“总结讲座常见话题：教育/科技/环境”
+]},
+{subject:“六级·写作”,color:”#f7a8c8”,time:“0.5h”,items:[
+“限时写作②×1篇（严格45分钟）”,
+“重点练段落展开，不只写提纲”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“660题10题”,”【+7天】复盘05/22的错题”,”【+3天】复盘05/26的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+7天】复盘05/22自控内容（重看笔记+做例题）”,”【+3天】复盘05/26自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/30”,day:“周五”,phase:“专项”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.5h”,items:[
+“【+7天】复盘05/23阅读（第2套）”,
+“【+7天】复盘05/23翻译（第2套）”,
+“【+3天】复盘05/27阅读（第6套）”,
+“【+3天】复盘05/27翻译（第6套）”,
+“【+1天】复盘05/29听力（第7套）”,
+“【+1天】复盘05/29写作②”
+]},
+{subject:“六级·阅读”,color:”#7eb8f7”,time:“1h”,items:[
+“第8套阅读：长篇匹配+仔细阅读（计时35min）”,
+“错题分析：定位失误还是词汇不够”
+]},
+{subject:“六级·翻译”,color:”#f7a8c8”,time:“0.5h”,items:[
+“第8套翻译段落×1，复习所有积累词汇”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“660题10题+错题回顾”,”【+7天】复盘05/23的错题”,”【+3天】复盘05/27的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+7天】复盘05/23自控内容（重看笔记+做例题）”,”【+3天】复盘05/27自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“05/31”,day:“周六”,phase:“专项→模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘05/24听力（第3套）”,
+“【+7天】复盘05/24写作①”,
+“【+1天】复盘05/30阅读（第8套）”,
+“【+1天】复盘05/30翻译（第8套）”
+]},
+{subject:“六级·专项收尾”,color:”#7eb8f7”,time:“1.5h”,items:[
+“第9-12套：各取听力/阅读1段做热身”,
+“写作：默写1篇范文测试记忆”,
+“翻译：整理全部积累词汇过一遍”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“660题10题”,”【+7天】复盘05/24的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1.5h”,items:[“卢姥爷视频 1.5h”,”【+7天】复盘05/24自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+// ── 模拟阶段 ──
+{
+date:“06/01”,day:“周日”,phase:“模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/25阅读（第4套）”,
+“【+7天】复盘05/25翻译（第4套）”,
+“【+3天】复盘05/29听力（第7套）”,
+“【+3天】复盘05/29写作②”,
+“【+1天】复盘05/31专项收尾”
+]},
+{subject:“六级·模拟①”,color:”#f7c87e”,time:“2.5h”,items:[
+“第13套 完整计时做（2h20min严格计时）”,
+“按顺序：听力→阅读→翻译→写作”,
+“做完统计各题型得分，找最弱项”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“强化36讲 0.5h”,“本周660题错题集中回顾”,”【+7天】复盘05/25的错题”,”【+3天】复盘05/29的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“卢姥爷视频 0.5h”,”【+7天】复盘05/25自控内容（重看笔记+做例题）”,”【+3天】复盘05/29自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“06/02”,day:“周一”,phase:“模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/26听力（第5套）”,
+“【+7天】复盘05/26写作”,
+“【+3天】复盘05/30阅读（第8套）”,
+“【+3天】复盘05/30翻译（第8套）”,
+“【+1天】复盘06/01模拟①（第13套）”
+]},
+{subject:“六级·模拟②”,color:”#f7c87e”,time:“2.5h”,items:[
+“第14套 完整计时做”,
+“重点关注模拟①薄弱题型的时间分配”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“强化36讲 0.5h”,“660题10题”,”【+7天】复盘05/26的错题”,”【+3天】复盘05/30的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“卢姥爷视频 0.5h”,”【+7天】复盘05/26自控内容（重看笔记+做例题）”,”【+3天】复盘05/30自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“06/03”,day:“周二”,phase:“模拟”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘05/27阅读（第6套）”,
+“【+7天】复盘05/27翻译（第6套）”,
+“【+3天】复盘05/31专项收尾”,
+“【+1天】复盘06/02模拟②（第14套）”
+]},
+{subject:“六级·模拟③”,color:”#f7c87e”,time:“2.5h”,items:[
+“第15套 完整计时做（最后一套模拟）”,
+“全程模拟考场，不中途停顿”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“强化36讲 0.5h”,“660题10题+错题回顾”,”【+7天】复盘05/27的错题”,”【+3天】复盘05/31的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“卢姥爷视频 0.5h”,”【+7天】复盘05/27自控内容（重看笔记+做例题）”,”【+3天】复盘05/31自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“墨墨背单词 100个”]}
+]
+},
+{
+date:“06/04”,day:“周三”,phase:“休息”,rest:true,
+tasks:[
+{subject:“休息日”,color:”#6b6b8a”,time:“随意”,items:[
+“出门运动 40min，完全放松”,
+“⚠ 可选：复盘06/01模拟①（+3天）”,
+“⚠ 可选：复盘06/03模拟③（+1天）”
+]}
+]
+},
+// ── 冲刺阶段 ──
+{
+date:“06/05”,day:“周四”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.25h”,items:[
+“【+7天】复盘05/29听力（第7套）”,
+“【+7天】复盘05/29写作②”,
+“【+3天】复盘06/02模拟②（第14套）”
+]},
+{subject:“六级·冲刺”,color:”#f7a8a8”,time:“1.5h”,items:[
+“针对三套模拟最弱题型专项加强”,
+“听力：重听错得最多的讲座题×3篇”,
+“制定考场时间分配策略”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“错题回顾”,”【+14天】复盘05/22的错题”,”【+7天】复盘05/29的错题”,”【+3天】复盘06/02的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+14天】复盘05/22自控内容（重看笔记+做例题）”,”【+7天】复盘05/29自控内容（重看笔记+做例题）”,”【+3天】复盘06/02自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“复习高频词”]}
+]
+},
+{
+date:“06/06”,day:“周五”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.5h”,items:[
+“【+7天】复盘05/30阅读（第8套）”,
+“【+7天】复盘05/30翻译（第8套）”,
+“【+3天】复盘06/03模拟③（第15套）”,
+“【+1天】复盘06/05听力冲刺”,
+“【+1天】复盘06/05薄弱题型”
+]},
+{subject:“六级·写作冲刺”,color:”#f7a8c8”,time:“1h”,items:[
+“默写最熟的3篇范文测试”,
+“整理考场写作模板一张纸”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,“薄弱章节660题”,”【+14天】复盘05/23的错题”,”【+7天】复盘05/30的错题”,”【+3天】复盘06/03的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+14天】复盘05/23自控内容（重看笔记+做例题）”,”【+7天】复盘05/30自控内容（重看笔记+做例题）”,”【+3天】复盘06/03自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“复习所有生词”]}
+]
+},
+{
+date:“06/07”,day:“周六”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘05/31专项收尾”,
+“【+1天】复盘06/06写作冲刺”
+]},
+{subject:“六级·冲刺”,color:”#f7a8a8”,time:“1.5h”,items:[
+“听力：重听3次模拟错最多的讲座×3篇”,
+“阅读：长篇匹配做1篇保持感觉”,
+“翻译：词汇最后过一遍”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[“强化36讲 1h”,”【+14天】复盘05/24的错题”,”【+7天】复盘05/31的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[“卢姥爷视频 1h”,”【+14天】复盘05/24自控内容（重看笔记+做例题）”,”【+7天】复盘05/31自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“1h”,items:[“复习全部生词本”]}
+]
+},
+{
+date:“06/08”,day:“周日”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1.5h”,items:[
+“【+7天】复盘06/01模拟①（第13套）”,
+“【+3天】复盘06/05听力冲刺”,
+“【+3天】复盘06/05薄弱题型”,
+“【+1天】复盘06/07听力冲刺”,
+“【+1天】复盘06/07阅读冲刺”,
+“【+1天】复盘06/07翻译冲刺”
+]},
+{subject:“六级·写作冲刺”,color:”#f7a8c8”,time:“1.5h”,items:[
+“限时写作×1篇（最后练习）”,
+“背诵写作模板+开头结尾各3套”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1h”,items:[“轻量复习，不做新题”,”【+14天】复盘05/25的错题”,”【+7天】复盘06/01的错题”,”【+3天】复盘06/05的错题”]},
+{subject:“自控”,color:”#f7c87e”,time:“0.5h”,items:[“轻量复习”,”【+14天】复盘05/25自控内容（重看笔记+做例题）”,”【+7天】复盘06/01自控内容（重看笔记+做例题）”,”【+3天】复盘06/05自控内容（重看笔记+做例题）”]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“高频词最后过一遍”]}
+]
+},
+{
+date:“06/09”,day:“周一”,phase:“考前”,note:“考前一天”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“0.75h”,items:[
+“【+7天】复盘06/02模拟②（第14套）”,
+“【+3天】复盘06/06写作冲刺”,
+“【+1天】复盘06/08写作冲刺”
+]},
+{subject:“六级·轻量复习”,color:”#c8a8f8”,time:“1.5h”,items:[
+“看写作模板一张纸（不背新内容）”,
+“翻译核心词汇默背”,
+“听力做1-2道热身保持感觉”
+]},
+{subject:“考试准备”,color:”#6b6b8a”,time:”—”,items:[
+“准备准考证、身份证、2B铅笔、黑笔”,
+“调好闹钟”,
+“23点前入睡！睡眠最重要”
+]},
+{subject:“数学/自控”,color:”#4a4a6a”,time:“1h”,items:[
+“随意翻翻笔记，不学新内容”,
+“【+14天】复盘05/26的错题/自控”,
+“【+7天】复盘06/02的错题/自控”,
+“【+3天】复盘06/06的错题/自控”
+]}
+]
+},
+{
+date:“06/10”,day:“周二”,phase:“冲刺”,rest:false,
+tasks:[
+{subject:“六级·复盘”,color:”#f77e7e”,time:“1h”,items:[
+“【+7天】复盘06/03模拟③（第15套）”,
+“【+3天】复盘06/07听力冲刺”,
+“【+3天】复盘06/07阅读冲刺”,
+“【+3天】复盘06/07翻译冲刺”,
+“【+1天】复盘06/09轻量复习”
+]},
+{subject:“六级·最后冲刺”,color:”#f7a8a8”,time:“1.5h”,items:[
+“写作句式最后默背”,
+“听力热身：做1套短对话保持状态”,
+“翻译词汇默背”
+]},
+{subject:“数学”,color:”#a8d8a8”,time:“1.5h”,items:[
+“强化36讲继续推进 1h”,“660题少量保持手感”,
+“【+14天】复盘05/27的错题”,
+“【+7天】复盘06/03的错题”,
+“【+3天】复盘06/07的错题”
+]},
+{subject:“自控”,color:”#f7c87e”,time:“1h”,items:[
+“卢姥爷视频 1h”,
+“【+14天】复盘05/27自控内容（重看笔记+做例题）”,
+“【+7天】复盘06/03自控内容（重看笔记+做例题）”,
+“【+3天】复盘06/07自控内容（重看笔记+做例题）”
+]},
+{subject:“单词”,color:”#c8a8f8”,time:“0.5h”,items:[“复习高频词”]}
+]
+}
+];
+
+var ck=JSON.parse(localStorage.getItem(‘ck’)||’{}’);
+var ei=JSON.parse(localStorage.getItem(‘ei’)||’{}’);
+var mistakes=JSON.parse(localStorage.getItem(‘mk’)||’[]’);
+var words=JSON.parse(localStorage.getItem(‘wd’)||’[]’);
+var mode=‘math’,tv=‘today’,selIdx=null;
+
+function sv(){localStorage.setItem(‘ck’,JSON.stringify(ck));localStorage.setItem(‘ei’,JSON.stringify(ei));localStorage.setItem(‘mk’,JSON.stringify(mistakes));localStorage.setItem(‘wd’,JSON.stringify(words));}
+
+function showPg(p){
+document.getElementById(‘sp’).style.display=p===‘s’?‘block’:‘none’;
+document.getElementById(‘tp’).style.display=p===‘t’?‘block’:‘none’;
+document.querySelectorAll(’.btab’).forEach(function(b,i){b.classList.toggle(‘on’,(i===0&&p===‘s’)||(i===1&&p===‘t’));});
+if(p===‘t’)renderT();
+}
+
+function gp(day,idx){
+var total=0,done=0;
+day.tasks.forEach(function(t,ti){t.items.forEach(function(_,ii){total++;if(ck[day.date+’-’+ti+’-’+ii])done++;});});
+return {total:total,done:done};
+}
+
+function renderSL(){
+var el=document.getElementById(‘sl’);
+el.innerHTML=schedule.map(function(day,idx){
+var p=gp(day,idx),pct=p.total?Math.round(p.done/p.total*100):0,pc=PC[day.phase]||’#6b6b8a’;
+var hr=day.tasks.some(function(t){return t.subject.indexOf(‘复盘’)>-1;});
+var pills=day.rest?’<span style="color:#3a3a5a;font-size:12px">🌿 休息</span>’:day.tasks.map(function(t){return ‘<span class="pill" style="background:'+t.color+'18;color:'+t.color+'">’+t.subject.replace(‘六级·’,’’)+’ ‘+t.time+’</span>’;}).join(’’);
+return ‘<div class="card'+(day.rest?' rest':'')+'" onclick="showD('+idx+')">’
++’<div class="pbar" style="background:'+pc+'"></div>’
++’<div class="ddate"><div class="dnum" style="color:'+(day.note?'#f7c87e':'#e8e4d9')+'">’+day.date.slice(3)+’</div><div class="dwd">’+day.day+’</div></div>’
++’<div class="dinfo"><div class="plabel" style="color:'+pc+'">’+day.phase+(hr?’ <span style="color:#f77e7e">·复盘</span>’:’’)+(day.note?’ <span style="color:#f7c87e">·’+day.note+’</span>’:’’)+’</div><div class="pills">’+pills+’</div></div>’
++(day.rest?’’:’<div class="prg"><div class="pnum'+(pct===100?' ok':'')+'">’+  (pct===100?‘✓’:pct+’%’)+’</div><div class="pbg"><div class="pfill" style="width:'+pct+'%"></div></div></div>’)
++’</div>’;
+}).join(’’);
+}
+
+function showD(idx){
+selIdx=idx;
+var day=schedule[idx],pc=PC[day.phase]||’#6b6b8a’,p=gp(day,idx);
+document.getElementById(‘sl’).style.display=‘none’;
+var sd=document.getElementById(‘sd’);
+sd.style.display=‘block’;
+sd.innerHTML=’<button class="back" onclick="closeD()">← 返回</button>’
++’<div class="dtitle">’+day.date+’ ‘+day.day+’</div>’
++’<div style="font-size:12px;font-weight:600;color:'+pc+';margin-bottom:4px">’+day.phase+’</div>’
++(day.note?’<div style="font-size:12px;color:#f7c87e;margin-bottom:12px">⚡ ‘+day.note+’</div>’:’’)
++(day.rest?’<div style="font-size:13px;color:#4a4a6a;margin-bottom:12px">今天好好休息 🌿</div>’:’’)
++day.tasks.map(function(task,ti){
+return ‘<div class="tblock" style="border:1px solid '+task.color+'28">’
++’<div class="thead"><div class="tname"><div class="tbar" style="background:'+task.color+'"></div><span style="color:'+task.color+'">’+task.subject+’</span></div><span class="ttime">’+task.time+’</span></div>’
++task.items.map(function(item,ii){
+var key=day.date+’-’+ti+’-’+ii,isDone=!!ck[key],text=ei[key]||item;
+return ‘<div class="item" onclick="tog(''+day.date+'','+ti+','+ii+')">’
++’<div class="cb" style="'+(isDone?'border-color:'+task.color+';background:'+task.color+'33':'')+'"><span style="font-size:11px;color:'+task.color+'">’+(isDone?‘✓’:’’)+’</span></div>’
++’<div class="itext'+(isDone?' done':'')+'" id="it-'+key+'" ondblclick="editI(event,''+day.date+'','+ti+','+ii+',this)">’+text+’</div>’
++’</div>’;
+}).join(’’)+’</div>’;
+}).join(’’)
++’<div class="dtot"><span>今日进度</span><strong class="'+(p.done===p.total&&p.total>0?'ok':'')+'">’+p.done+’/’+p.total+(p.done===p.total&&p.total>0?’ · 全部完成！’:’’)+’</strong></div>’;
+}
+
+function closeD(){selIdx=null;document.getElementById(‘sl’).style.display=‘block’;document.getElementById(‘sd’).style.display=‘none’;renderSL();}
+
+function tog(date,ti,ii){var key=date+’-’+ti+’-’+ii;ck[key]=!ck[key];sv();if(selIdx!==null)showD(selIdx);}
+
+function editI(e,date,ti,ii,el){
+e.stopPropagation();
+var key=date+’-’+ti+’-’+ii,cur=el.textContent;
+var inp=document.createElement(‘input’);inp.value=cur;inp.style.cssText=‘flex:1;background:#0c0c10;border:1px solid #7eb8f7;border-radius:6px;padding:3px 8px;color:#e8e4d9;font-size:13px;width:100%’;
+var w=document.createElement(‘div’);w.style.cssText=‘display:flex;gap:6px;flex:1’;
+var ok=document.createElement(‘button’);ok.textContent=‘✓’;ok.style.cssText=‘background:#7eb8f7;border:none;border-radius:6px;padding:3px 10px;color:#0c0c10;font-weight:700;cursor:pointer;font-size:12px’;
+var ca=document.createElement(‘button’);ca.textContent=‘✕’;ca.style.cssText=‘background:#2a2a3a;border:none;border-radius:6px;padding:3px 8px;color:#6b6b8a;cursor:pointer;font-size:12px’;
+w.appendChild(inp);w.appendChild(ok);w.appendChild(ca);
+el.parentNode.replaceChild(w,el);inp.focus();
+ok.onclick=function(ev){ev.stopPropagation();ei[key]=inp.value;sv();showD(selIdx);};
+ca.onclick=function(ev){ev.stopPropagation();showD(selIdx);};
+inp.onkeydown=function(ev){if(ev.key===‘Enter’){ei[key]=inp.value;sv();showD(selIdx);}if(ev.key===‘Escape’)showD(selIdx);};
+}
+
+// TRACKER
+var MI=[3,7,14],CI=[1,3,7];
+function td(){return new Date().toISOString().slice(0,10);}
+function addD(d,n){var dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);}
+function fmt(d){return new Date(d+‘T00:00:00’).toLocaleDateString(‘zh-CN’,{month:‘numeric’,day:‘numeric’,weekday:‘short’});}
+
+function setMode(m){
+mode=m;tv=‘today’;
+document.querySelectorAll(’.mbtn’).forEach(function(b,i){b.classList.toggle(‘on’,i===(m===‘math’?0:1));b.classList.toggle(‘cet’,m===‘cet’);});
+renderT();
+}
+function setTV(v){
+tv=v;
+document.querySelectorAll(’.ntab’).forEach(function(b,i){
+var vs=[‘today’,‘add’,‘all’];b.classList.toggle(‘on’,vs[i]===v);b.classList.toggle(‘cet’,mode===‘cet’);
+});
+renderT();
+}
+
+function getDue(items,intervals,t){
+var res=[];
+items.forEach(function(item){item.reviews.forEach(function(r,idx){if(!r.done&&r.dueDate<=t)res.push({item:item,ri:idx,r:r});});});
+return res;
+}
+function getUp(items,intervals,t){
+var lim=addD(t,7),res=[];
+items.forEach(function(item){item.reviews.forEach(function(r,idx){if(!r.done&&r.dueDate>t&&r.dueDate<=lim)res.push({item:item,ri:idx,r:r});});});
+return res.sort(function(a,b){return a.r.dueDate.localeCompare(b.r.dueDate);});
+}
+
+function renderT(){
+var isMath=mode===‘math’,items=isMath?mistakes:words,t=td(),intervals=isMath?MI:CI;
+var md=getDue(mistakes,MI,t).length,wd=getDue(words,CI,t).length;
+document.getElementById(‘ts’).innerHTML=’<div class="stat"><div class="v" style="color:#7eb8f7">’+mistakes.length+’</div><div class="l">错题</div></div><div class="stat"><div class="v" style="color:#c8a8f8">’+words.length+’</div><div class="l">单词</div></div><div class="stat"><div class="v" style="color:#f77e7e">’+(md+wd)+’</div><div class="l">待复盘</div></div>’;
+var el=document.getElementById(‘tc’),due=getDue(items,intervals,t),up=getUp(items,intervals,t),ov=due.filter(function(d){return d.r.dueDate<t;});
+if(tv===‘today’){
+if(!due.length){el.innerHTML=’<div class="empty"><div style="font-size:36px;margin-bottom:10px">✓</div>’+(isMath?‘今日没有数学错题’:‘今日没有单词’)+‘需要回顾</div>’;}
+else{
+var h=ov.length?’<div style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#f77e7e">⚠ 有’+ov.length+‘条已逾期</div>’:’’;
+h+=due.map(function(d){return rcHtml(d,isMath,t);}).join(’’);
+if(up.length){h+=’<div class="upc"><div style="font-size:11px;letter-spacing:3px;color:#6b6b8a;margin-bottom:10px">近7天计划</div>’;h+=up.map(function(d){return ‘<div class="upci"><div><div style="font-size:13px;color:#c8c4b9">’+(isMath?d.item.chapter+’ · ‘+d.item.problem:d.item.word)+’</div><div style="font-size:11px;color:#6b6b8a;margin-top:3px">+’+d.r.interval+‘天</div></div><div class="dc" style="background:'+(isMath?'#1a2a3a':'#1a1a2a')+';color:'+(isMath?'#7eb8f7':'#c8a8f8')+'">’+fmt(d.r.dueDate)+’</div></div>’;}).join(’’);h+=’</div>’;}
+el.innerHTML=h;
+}
+} else if(tv===‘add’){
+el.innerHTML=isMath?mathForm():wordForm();
+} else {
+if(!items.length){el.innerHTML=’<div class="empty">’+(isMath?‘还没有错题记录’:‘还没有单词记录’)+’</div>’;}
+else el.innerHTML=items.map(function(item){return acHtml(item,isMath,t);}).join(’’);
+}
+}
+
+function rcHtml(d,isMath,t){
+var ov=d.r.dueDate<t,c=isMath?’#7eb8f7’:’#c8a8f8’;
+return ‘<div class="rc'+(ov?' ov':'')+'">’
++’<div><span class="badge" style="background:'+(isMath?'#1a2a3a':'#1a1a2a')+';color:'+c+'">’+(isMath?‘📐 数学’:‘📝 单词’)+’ +’+d.r.interval+‘天</span>’+(ov?’<span class="badge" style="background:#5a1a1a;color:#f77e7e">逾期</span>’:’’)+’</div>’
++(isMath?’<div style="font-size:14px;font-weight:600;color:#e8e4d9">’+d.item.chapter+’</div><div style="font-size:13px;color:#c8c4b9;margin-top:2px">’+d.item.problem+’</div><div style="font-size:11px;color:#6b6b8a;margin-top:4px">’+d.item.type+(d.item.note?’ · ‘+d.item.note:’’)+’</div>’
+:’<div style="font-size:16px;font-weight:700;color:#e8e4d9">’+d.item.word+’</div><div style="font-size:13px;color:#c8a8f8;margin-top:3px">’+d.item.meaning+’</div><div style="font-size:11px;color:#6b6b8a;margin-top:4px">’+d.item.year+‘年 · ‘+d.item.cetType+’</div>’)
++’<button class="dbtn'+(ov?' ov':'')+'" onclick="markD(''+d.item.id+'','+d.ri+','+(isMath?'true':'false')+')">✓ 标记已回顾</button></div>’;
+}
+
+function acHtml(item,isMath,t){
+var done=item.reviews.filter(function(r){return r.done;}).length;
+var pips=item.reviews.map(function(r,i){return ‘<div class="pip" style="background:'+(r.done?'#1e3a1e':r.dueDate<=t?'#3a1e1e':'#1e1e2e')+';border:1px solid '+(r.done?'#3a6a3a':r.dueDate<=t?'#6a3a3a':'#2a2a3a')+';color:'+(r.done?'#a8d8a8':r.dueDate<=t?'#f77e7e':'#6b6b8a')+'">+’+r.interval+‘天<br>’+(r.done?‘✓’:fmt(r.dueDate))+’</div>’;}).join(’’);
+return ‘<div class="ac"><div style="display:flex;justify-content:space-between;align-items:flex-start">’
++(isMath?’<div><div style="font-size:14px;font-weight:600;color:#e8e4d9">’+item.chapter+’</div><div style="font-size:13px;color:#7eb8f7;margin-top:2px">’+item.problem+’</div><div style="font-size:11px;color:#6b6b8a;margin-top:4px">’+item.type+(item.note?’ · ‘+item.note:’’)+’ · ‘+fmt(item.date)+’</div></div>’
+:’<div><div style="font-size:15px;font-weight:700;color:#e8e4d9">’+item.word+’</div><div style="font-size:13px;color:#c8a8f8;margin-top:2px">’+item.meaning+’</div><div style="font-size:11px;color:#6b6b8a;margin-top:4px">’+item.year+‘年 · ‘+item.cetType+’ · ‘+fmt(item.date)+’</div></div>’)
++’<button class="xbtn" onclick="delI(''+item.id+'','+(isMath?'true':'false')+')">×</button></div>’
++’<div class="pips">’+pips+’</div><div style="font-size:11px;color:#6b6b8a;margin-top:6px">回顾进度：’+done+’/’+item.reviews.length+’</div></div>’;
+}
+
+function mathForm(){
+return ‘<div class="fb"><div style="font-size:13px;color:#6b6b8a;margin-bottom:18px">添加数学错题</div>’
++’<div class="fld"><label>做题日期</label><input type="date" id="md" value="'+td()+'"></div>’
++’<div class="fld"><label>章节</label><select id="mc">’+CHAPTERS.map(function(c){return ‘<option>’+c+’</option>’;}).join(’’)+’</select></div>’
++’<div class="fld"><label>题目编号</label><input type="text" id="mp" placeholder="如：第138题"></div>’
++’<div class="fld"><label>错误类型</label><div class="cg" id="mtg">’+MTYPES.map(function(t,i){return ‘<button class="ch'+(i===0?' on':'')+'" onclick="selCh(this)">’+t+’</button>’;}).join(’’)+’</div></div>’
++’<div class="fld"><label>备注（可选）</label><input type="text" id="mn" placeholder="解题思路或关键点"></div>’
++’<div class="hint">📅 自动安排 +3天、+7天、+14天 回顾</div>’
++’<button class="sbtn" onclick="addM()">添加错题</button></div>’;
+}
+
+function wordForm(){
+return ‘<div class="fb"><div style="font-size:13px;color:#6b6b8a;margin-bottom:18px">批量添加六级单词</div>’
++’<div class="fld"><label>记录日期</label><input type="date" id="wd2" value="'+td()+'"></div>’
++’<div class="fld"><label>真题年份</label><div class="cg" id="wyg">’+CYEARS.map(function(y,i){return ‘<button class="ch cet'+(i===0?' on':'')+'" onclick="selCh(this)">’+y+’</button>’;}).join(’’)+’</div></div>’
++’<div class="fld"><label>题型</label><div class="cg" id="wtg">’+CTYPES.map(function(t,i){return ‘<button class="ch cet'+(i===0?' on':'')+'" onclick="selCh(this)">’+t+’</button>’;}).join(’’)+’</div></div>’
++’<div class="fld"><label>批量粘贴（每行一个）</label><div style="font-size:11px;color:#4a4a6a;margin-bottom:6px">格式：单词: 释义</div><textarea id="wb" rows="6" placeholder="ambiguous: 模棱两可的&#10;substantial: 大量的" oninput="prvW()"></textarea></div>’
++’<div id="wp"></div>’
++’<div class="hint cet">📅 自动安排 +1天、+3天、+7天 回顾</div>’
++’<button class="sbtn cet" onclick="addW()">批量添加</button></div>’;
+}
+
+function selCh(el){el.closest(’.cg’).querySelectorAll(’.ch’).forEach(function(c){c.classList.remove(‘on’);});el.classList.add(‘on’);}
+function prvW(){var b=document.getElementById(‘wb’).value,l=b.split(’\n’).filter(function(x){return x.includes(’:’)&&x.trim();});var el=document.getElementById(‘wp’);el.innerHTML=l.length?’<div style="background:#1a1a2e;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#c8a8f8">✓ 识别到 ‘+l.length+’ 个单词</div>’:b.trim()?’<div style="background:#2a1a1a;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#f77e7e">⚠ 格式需为「单词: 释义」</div>’:’’;}
+
+function mkR(date,intervals){return intervals.map(function(d){return {dueDate:addD(date,d),interval:d,done:false};});}
+
+function addM(){
+var date=document.getElementById(‘md’).value,chapter=document.getElementById(‘mc’).value,problem=document.getElementById(‘mp’).value.trim(),note=document.getElementById(‘mn’).value.trim();
+var type=document.querySelector(’#mtg .ch.on’);type=type?type.textContent:MTYPES[0];
+if(!problem){alert(‘请填写题目编号’);return;}
+mistakes.unshift({id:Date.now()+’’,date:date,chapter:chapter,problem:problem,type:type,note:note,reviews:mkR(date,MI)});
+sv();setTV(‘today’);
+}
+
+function addW(){
+var date=document.getElementById(‘wd2’).value;
+var year=document.querySelector(’#wyg .ch.on’);year=year?year.textContent:CYEARS[0];
+var cetType=document.querySelector(’#wtg .ch.on’);cetType=cetType?cetType.textContent:CTYPES[0];
+var bulk=document.getElementById(‘wb’).value,lines=bulk.split(’\n’).filter(function(l){return l.includes(’:’)&&l.trim();});
+if(!lines.length){alert(‘请粘贴单词’);return;}
+var nw=lines.map(function(line){var ci=line.indexOf(’:’);return {id:Date.now()+Math.random()+’’,date:date,year:year,cetType:cetType,word:line.slice(0,ci).trim(),meaning:line.slice(ci+1).trim(),reviews:mkR(date,CI)};}).filter(function(w){return w.word&&w.meaning;});
+words.unshift.apply(words,nw);sv();setTV(‘today’);
+}
+
+function markD(id,ri,isMath){
+var arr=isMath?mistakes:words,item=null;
+for(var i=0;i<arr.length;i++){if(arr[i].id===id){item=arr[i];break;}}
+if(item)item.reviews[ri].done=true;
+sv();renderT();
+}
+
+function delI(id,isMath){
+if(isMath)mistakes=mistakes.filter(function(m){return m.id!==id;});
+else words=words.filter(function(w){return w.id!==id;});
+sv();renderT();
+}
+
+renderSL();
+</script>
+
+</body>
+</html>
