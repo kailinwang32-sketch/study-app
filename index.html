@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>备考工具</title>
+<style>
+body{background:#0c0c10;color:#e8e4d9;font-family:sans-serif;padding:20px}
+.card{background:#15151f;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #2a2a3a;cursor:pointer}
+.hdr{background:#13131f;padding:16px;margin:-20px -20px 16px;border-bottom:1px solid #1e1e2e}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div style="font-size:11px;color:#4a4a6a;letter-spacing:2px">STUDY PLAN</div>
+  <div style="font-size:20px;font-weight:700">5月22日 → 6月10日</div>
+</div>
+<div id="list"></div>
+<script>
+var days = [
+  {date:"05/22", day:"周四", phase:"专项"},
+  {date:"05/23", day:"周五", phase:"专项"},
+  {date:"05/24", day:"周六", phase:"专项"},
+  {date:"05/25", day:"周日", phase:"专项"},
+  {date:"05/26", day:"周一", phase:"专项"},
+  {date:"05/27", day:"周二", phase:"专项"},
+  {date:"05/28", day:"周三", phase:"休息"},
+  {date:"05/29", day:"周四", phase:"专项"},
+  {date:"05/30", day:"周五", phase:"专项"}
+];
+
+var el = document.getElementById(‘list’);
+var html = ‘’;
+for(var i=0; i<days.length; i++){
+var d = days[i];
+html += ‘<div class="card"><strong style="color:#7eb8f7">’ + d.date + ’ ’ + d.day + ’</strong> · ’ + d.phase + ‘</div>’;
+}
+el.innerHTML = html;
+</script>
+
+</body>
+</html>
