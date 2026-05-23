@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>测试</title>
+<style>
+body{background:#0c0c10;color:#e8e4d9;padding:20px;font-family:sans-serif}
+.card{background:#15151f;border-radius:12px;padding:14px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="out"><div style="color:#f77e7e">JS未执行</div></div>
+<script>
+var data = [
+  {date:"05/22",day:"周四",phase:"专项"},
+  {date:"05/23",day:"周五",phase:"专项"},
+  {date:"05/24",day:"周六",phase:"专项"},
+  {date:"05/25",day:"周日",phase:"专项"},
+  {date:"05/26",day:"周一",phase:"专项"},
+  {date:"05/27",day:"周二",phase:"专项"},
+  {date:"05/28",day:"周三",phase:"休息"},
+  {date:"05/29",day:"周四",phase:"专项"},
+  {date:"05/30",day:"周五",phase:"专项"},
+  {date:"05/31",day:"周六",phase:"专项"},
+  {date:"06/01",day:"周日",phase:"模拟"},
+  {date:"06/02",day:"周一",phase:"模拟"},
+  {date:"06/03",day:"周二",phase:"模拟"},
+  {date:"06/04",day:"周三",phase:"休息"},
+  {date:"06/05",day:"周四",phase:"冲刺"},
+  {date:"06/06",day:"周五",phase:"冲刺"},
+  {date:"06/07",day:"周六",phase:"冲刺"},
+  {date:"06/08",day:"周日",phase:"冲刺"},
+  {date:"06/09",day:"周一",phase:"考前"},
+  {date:"06/10",day:"周二",phase:"冲刺"}
+];
+var html = "";
+for(var i=0;i<data.length;i++){
+  html += "<div class=\"card\"><strong style=\"color:#7eb8f7\">" + data[i].date + " " + data[i].day + "</strong> " + data[i].phase + "</div>";
+}
+document.getElementById("out").innerHTML = html;
+</script>
+</body>
+</html>
