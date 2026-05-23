@@ -14,6 +14,7 @@
             --accent-hover: #C2B0A1;
             --success-color: #A3B899;
             --border-color: #EFEBE6;
+            --danger-color: #E2A09F;
         }
 
         * {
@@ -27,7 +28,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             line-height: 1.6;
-            padding: 30px 20px; /* 调整了顶部留白 */
+            padding: 30px 20px;
         }
 
         .container {
@@ -167,13 +168,11 @@
             color: var(--text-main);
             margin-bottom: 15px;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .task-item {
             display: flex;
+            justify-content: space-between;
             align-items: flex-start;
             gap: 12px;
             margin-bottom: 12px;
@@ -189,6 +188,13 @@
         .task-item:hover {
             background-color: #FFFFFF;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .task-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            flex: 1;
         }
 
         .checkbox {
@@ -226,11 +232,71 @@
             user-select: none;
             transition: color 0.2s;
             line-height: 1.4;
+            word-break: break-all;
         }
 
         .task-item input:checked + .task-label {
             color: var(--text-light);
             text-decoration: line-through;
+        }
+
+        /* 增删改 操作按钮 */
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0.7;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 2px;
+            color: var(--text-light);
+        }
+
+        .icon-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        /* 底部添加任务区域 */
+        .add-task-container {
+            margin-top: 30px;
+            background: #FAFAFA;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed var(--accent-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .add-task-container select, 
+        .add-task-container input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            color: var(--text-main);
+            background: white;
+        }
+
+        .add-task-container button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-task-container button:active {
+            background: var(--accent-hover);
         }
 
         .empty-state {
@@ -255,78 +321,81 @@
         </div>
         <div id="detail-tasks">
             </div>
+
+        <div class="add-task-container">
+            <select id="new-task-subject">
+                <option value="english">📚 英语 (六级 & 单词)</option>
+                <option value="math">📐 数学</option>
+                <option value="prof">💻 专业课</option>
+            </select>
+            <input type="text" id="new-task-text" placeholder="输入你想增加的任务内容..." />
+            <button onclick="addNewTask()">＋ 添加任务到今天</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // 基础数据配置 (已将自控替换为专业课)
+    // 基础数据配置 v4
     const rawData = [
-        { date: '5/22', isRest: false, newEng: '六级：听力第1套+写作', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/23', isRest: false, newEng: '六级：阅读第2套+翻译', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/24', isRest: false, newEng: '六级：听力第3套+写作①', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/25', isRest: false, newEng: '六级：阅读第4套+翻译', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/26', isRest: false, newEng: '六级：听力第5套+写作', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/27', isRest: false, newEng: '六级：阅读第6套+翻译', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
+        { date: '5/22', isRest: false, newEng: '六级：听力第1套+写作', newMath: '数学：高数-极限与连续', newProf: '自控：系统数学模型建构', newWord: '单词日常' },
+        { date: '5/23', isRest: false, newEng: '六级：阅读第2套+翻译', newMath: '数学：高数-一元函数微分学', newProf: '自控：时域分析(一阶与二阶)', newWord: '单词日常' },
+        { date: '5/24', isRest: false, newEng: '六级：听力第3套+写作①', newMath: '数学：高数-一元函数积分学', newProf: '自控：时域分析(高阶与稳定性)', newWord: '单词日常' },
+        { date: '5/25', isRest: false, newEng: '六级：阅读第4套+翻译', newMath: '数学：高数-多元函数微分学', newProf: '自控：稳态误差计算与分析', newWord: '单词日常' },
+        { date: '5/26', isRest: false, newEng: '六级：听力第5套+写作', newMath: '数学：高数-二重积分', newProf: '自控：根轨迹法基础规则', newWord: '单词日常' },
+        { date: '5/27', isRest: false, newEng: '六级：阅读第6套+翻译', newMath: '数学：高数-常微分方程', newProf: '自控：广义根轨迹与系统分析', newWord: '单词日常' },
         { date: '5/28', isRest: true,  newEng: '', newMath: '', newProf: '', newWord: '单词日常(休息日)' },
-        { date: '5/29', isRest: false, newEng: '六级：听力第7套+写作②', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/30', isRest: false, newEng: '六级：阅读第8套+翻译', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '5/31', isRest: false, newEng: '六级：专项收尾', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/1',  isRest: false, newEng: '六级：模拟①', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/2',  isRest: false, newEng: '六级：模拟②', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/3',  isRest: false, newEng: '六级：模拟③', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
+        { date: '5/29', isRest: false, newEng: '六级：听力第7套+写作②', newMath: '数学：高数-无穷级数强化', newProf: '自控：频域分析(奈奎斯特图)', newWord: '单词日常' },
+        { date: '5/30', isRest: false, newEng: '六级：阅读第8套+翻译', newMath: '数学：高数-曲线曲面积分', newProf: '自控：频域分析(伯德图绘制)', newWord: '单词日常' },
+        { date: '5/31', isRest: false, newEng: '六级：专项收尾', newMath: '数学：线代-行列式与矩阵', newProf: '自控：频域稳定判据与裕度', newWord: '单词日常' },
+        { date: '6/1',  isRest: false, newEng: '六级：模拟①', newMath: '数学：线代-向量与方程组', newProf: '自控：系统校正(串联超前/滞后)', newWord: '单词日常' },
+        { date: '6/2',  isRest: false, newEng: '六级：模拟②', newMath: '数学：线代-特征值与特征向量', newProf: '自控：系统校正(反馈与复合)', newWord: '单词日常' },
+        { date: '6/3',  isRest: false, newEng: '六级：模拟③', newMath: '数学：线代-二次型及综合', newProf: '自控：离散系统分析基础', newWord: '单词日常' },
         { date: '6/4',  isRest: true,  newEng: '', newMath: '', newProf: '', newWord: '单词日常(休息日)' },
-        { date: '6/5',  isRest: false, newEng: '', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/6',  isRest: false, newEng: '', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/7',  isRest: false, newEng: '', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/8',  isRest: false, newEng: '', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/9',  isRest: false, newEng: '', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' },
-        { date: '6/10', isRest: false, newEng: '', newMath: '数学新任务', newProf: '专业课新任务', newWord: '单词日常' }
+        { date: '6/5',  isRest: false, newEng: '', newMath: '数学：概率论-随机事件与概率', newProf: '自控：离散系统Z变换与稳定性', newWord: '单词日常' },
+        { date: '6/6',  isRest: false, newEng: '', newMath: '数学：概率论-一维随机变量', newProf: '自控：非线性系统(相平面法)', newWord: '单词日常' },
+        { date: '6/7',  isRest: false, newEng: '', newMath: '数学：概率论-多维随机变量', newProf: '自控：非线性系统(描述函数法)', newWord: '单词日常' },
+        { date: '6/8',  isRest: false, newEng: '', newMath: '数学：概率论-数字特征', newProf: '自控：状态空间分析基础建模', newWord: '单词日常' },
+        { date: '6/9',  isRest: false, newEng: '', newMath: '数学：概率论-大数定律与统计', newProf: '自控：系统能控性与能观性分析', newWord: '单词日常' },
+        { date: '6/10', isRest: false, newEng: '', newMath: '数学：阶段大综合测试题', newProf: '自控：状态反馈与状态观测器', newWord: '单词日常' }
     ];
 
-    // 复盘节点严格拆分为 英语、数学、专业课
     const reviewMap = {
         '5/23': ['复盘: 5/22 六级听力/写作'],
         '5/24': ['复盘: 5/23 六级阅读/翻译'],
-        '5/25': ['复盘: 5/22 六级听力/写作', '复盘: 5/24 六级听力/写作①', '复盘: 5/22 数学', '复盘: 5/22 专业课'],
-        '5/26': ['复盘: 5/23 六级阅读/翻译', '复盘: 5/25 六级阅读/翻译', '复盘: 5/23 数学', '复盘: 5/23 专业课'],
-        '5/27': ['复盘: 5/24 六级听力/写作①', '复盘: 5/26 六级听力/写作', '复盘: 5/24 数学', '复盘: 5/24 专业课'],
-        '5/29': ['复盘: 5/22 六级听力/写作', '复盘: 5/25 六级阅读/翻译', '复盘: 5/27 六级阅读/翻译', '复盘: 5/22 数学', '复盘: 5/22 专业课', '复盘: 5/25 数学', '复盘: 5/25 专业课', '复盘: 5/26 数学', '复盘: 5/26 专业课'],
-        '5/30': ['复盘: 5/23 六级阅读/翻译', '复盘: 5/26 六级听力/写作', '复盘: 5/29 六级听力/写作②', '复盘: 5/23 数学', '复盘: 5/23 专业课', '复盘: 5/27 数学', '复盘: 5/27 专业课'],
-        '5/31': ['复盘: 5/24 六级听力/写作①', '复盘: 5/27 六级阅读/翻译', '复盘: 5/30 六级阅读/翻译', '复盘: 5/24 数学', '复盘: 5/24 专业课'],
-        '6/1':  ['复盘: 5/25 六级阅读/翻译', '复盘: 5/29 六级听力/写作②', '复盘: 5/31 六级专项收尾', '复盘: 5/25 数学', '复盘: 5/25 专业课', '复盘: 5/29 数学', '复盘: 5/29 专业课'],
-        '6/2':  ['复盘: 5/26 六级听力/写作', '复盘: 5/30 六级阅读/翻译', '复盘: 6/1 六级模拟①', '复盘: 5/26 数学', '复盘: 5/26 专业课', '复盘: 5/30 数学', '复盘: 5/30 专业课'],
-        '6/3':  ['复盘: 5/27 六级阅读/翻译', '复盘: 5/31 六级专项收尾', '复盘: 6/2 六级模拟②', '复盘: 5/27 数学', '复盘: 5/27 专业课', '复盘: 5/31 数学', '复盘: 5/31 专业课'],
-        '6/5':  ['复盘: 5/29 六级听力/写作②', '复盘: 6/1 六级模拟①', '复盘: 6/3 六级模拟③', '复盘: 5/22 数学', '复盘: 5/22 专业课', '复盘: 5/29 数学', '复盘: 5/29 专业课'],
-        '6/6':  ['复盘: 5/30 六级阅读/翻译', '复盘: 6/2 六级模拟②', '复盘: 5/23 数学', '复盘: 5/23 专业课', '复盘: 5/30 数学', '复盘: 5/30 专业课'],
-        '6/7':  ['复盘: 5/31 六级专项收尾', '复盘: 6/3 六级模拟③', '复盘: 5/24 数学', '复盘: 5/24 专业课', '复盘: 5/31 数学', '复盘: 5/31 专业课'],
-        '6/8':  ['复盘: 6/1 六级模拟①', '复盘: 5/25 数学', '复盘: 5/25 专业课'],
-        '6/9':  ['复盘: 6/2 六级模拟②', '复盘: 5/26 数学', '复盘: 5/26 专业课'],
-        '6/10': ['复盘: 6/3 六级模拟③', '复盘: 5/27 数学', '复盘: 5/27 专业课']
+        '5/25': ['复盘: 5/22 六级听力/写作', '复盘: 5/24 六级听力/写作①', '复盘: 5/22 数学(极限与连续)', '复盘: 5/22 专业课(系统建模)'],
+        '5/26': ['复盘: 5/23 六级阅读/翻译', '复盘: 5/25 六级阅读/翻译', '复盘: 5/23 数学(一元微分)', '复盘: 5/23 专业课(时域一阶/二阶)'],
+        '5/27': ['复盘: 5/24 六级听力/写作①', '复盘: 5/26 六级听力/写作', '复盘: 5/24 数学(一元积分)', '复盘: 5/24 专业课(时域高阶/稳定)'],
+        '5/29': ['复盘: 5/22 六级听力/写作', '复盘: 5/25 六级阅读/翻译', '复盘: 5/27 六级阅读/翻译', '复盘: 5/22 数学(极限与连续)', '复盘: 5/22 专业课(系统建模)', '复盘: 5/25 数学(多元微分)', '复盘: 5/25 专业课(误差分析)', '复盘: 5/26 数学(二重积分)', '复盘: 5/26 专业课(根轨迹基础)'],
+        '5/30': ['复盘: 5/23 六级阅读/翻译', '复盘: 5/26 六级听力/写作', '复盘: 5/29 六级听力/写作②', '复盘: 5/23 数学(一元微分)', '复盘: 5/23 专业课(时域一阶/二阶)', '复盘: 5/27 数学(微分方程)', '复盘: 5/27 专业课(广义根轨迹)'],
+        '5/31': ['复盘: 5/24 六级听力/写作①', '复盘: 5/27 六级阅读/翻译', '复盘: 5/30 六级阅读/翻译', '复盘: 5/24 数学(一元积分)', '复盘: 5/24 专业课(时域高阶/稳定)'],
+        '6/1':  ['复盘: 5/25 六级阅读/翻译', '复盘: 5/29 六级听力/写作②', '复盘: 5/31 六级专项收尾', '复盘: 5/25 数学(多元微分)', '复盘: 5/25 专业课(误差分析)', '复盘: 5/29 数学(级数)', '复盘: 5/29 专业课(奈奎斯特图)'],
+        '6/2':  ['复盘: 5/26 六级听力/写作', '复盘: 5/30 六级阅读/翻译', '复盘: 6/1 六级模拟①', '复盘: 5/26 数学(二重积分)', '复盘: 5/26 专业课(根轨迹基础)', '复盘: 5/30 数学(曲线曲面积分)', '复盘: 5/30 专业课(伯德图)'],
+        '6/3':  ['复盘: 5/27 六级阅读/翻译', '复盘: 5/31 六级专项收尾', '复盘: 6/2 六级模拟②', '复盘: 5/27 数学(微分方程)', '复盘: 5/27 专业课(广义根轨迹)', '复盘: 5/31 数学(行列式/矩阵)', '复盘: 5/31 专业课(频域判据)'],
+        '6/5':  ['复盘: 5/29 六级听力/写作②', '复盘: 6/1 六级模拟①', '复盘: 6/3 六级模拟③', '复盘: 5/22 数学(极限与连续)', '复盘: 5/22 专业课(系统建模)', '复盘: 5/29 数学(级数)', '复盘: 5/29 专业课(奈奎斯特图)'],
+        '6/6':  ['复盘: 5/30 六级阅读/翻译', '复盘: 6/2 六级模拟②', '复盘: 5/23 数学(一元微分)', '复盘: 5/23 专业课(时域一阶/二阶)', '复盘: 5/30 数学(曲线曲面积分)', '复盘: 5/30 专业课(伯德图)'],
+        '6/7':  ['复盘: 5/31 六级专项收尾', '复盘: 6/3 六级模拟③', '复盘: 5/24 数学(一元积分)', '复盘: 5/24 专业课(时域高阶/稳定)', '复盘: 5/31 数学(行列式/矩阵)', '复盘: 5/31 专业课(频域判据)'],
+        '6/8':  ['复盘: 6/1 六级模拟①', '复盘: 5/25 数学(多元微分)', '复盘: 5/25 专业课(误差分析)'],
+        '6/9':  ['复盘: 6/2 六级模拟②', '复盘: 5/26 数学(二重积分)', '复盘: 5/26 专业课(根轨迹基础)'],
+        '6/10': ['复盘: 6/3 六级模拟③', '复盘: 5/27 数学(微分方程)', '复盘: 5/27 专业课(广义根轨迹)']
     };
 
     let scheduleData = [];
     let currentActiveDate = null;
 
-    // 初始化或读取数据 (采用 v2 新版本数据结构)
+    // 采用 v4 本地存储，避免新旧结构冲突
     function initData() {
-        const localData = localStorage.getItem('nd_study_schedule_v2');
+        const localData = localStorage.getItem('nd_study_schedule_v4');
         if (localData) {
             scheduleData = JSON.parse(localData);
         } else {
             scheduleData = rawData.map(day => {
                 let tasks = [];
                 
-                // 1. 英语 (单词+六级)
                 if (day.newWord) tasks.push({ id: `${day.date}-word`, subject: 'english', text: day.newWord, done: false });
                 if (!day.isRest && day.newEng) tasks.push({ id: `${day.date}-eng`, subject: 'english', text: day.newEng, done: false });
-                
-                // 2. 数学
                 if (!day.isRest && day.newMath) tasks.push({ id: `${day.date}-math`, subject: 'math', text: day.newMath, done: false });
-                
-                // 3. 专业课
                 if (!day.isRest && day.newProf) tasks.push({ id: `${day.date}-prof`, subject: 'prof', text: day.newProf, done: false });
 
-                // 4. 解析复盘任务属于哪个科目
                 const reviews = reviewMap[day.date] || [];
                 reviews.forEach((rev, idx) => {
                     let subj = 'english';
@@ -335,22 +404,16 @@
                     tasks.push({ id: `${day.date}-rev-${idx}`, subject: subj, text: rev, done: false });
                 });
 
-                return {
-                    date: day.date,
-                    isRest: day.isRest,
-                    tasks: tasks
-                };
+                return { date: day.date, isRest: day.isRest, tasks: tasks };
             });
             saveData();
         }
     }
 
-    // 保存到 localStorage
     function saveData() {
-        localStorage.setItem('nd_study_schedule_v2', JSON.stringify(scheduleData));
+        localStorage.setItem('nd_study_schedule_v4', JSON.stringify(scheduleData));
     }
 
-    // 渲染列表页
     function renderList() {
         const listContainer = document.getElementById('list-view');
         listContainer.innerHTML = '';
@@ -360,7 +423,6 @@
             const completedTasks = day.tasks.filter(t => t.done).length;
             const progressPercent = totalTasks === 0 ? 100 : Math.round((completedTasks / totalTasks) * 100);
             
-            // 提取前缀预览文本
             const previewText = day.tasks.length > 0 
                 ? day.tasks.slice(0, 2).map(t => t.text).join(' | ') + (day.tasks.length > 2 ? '...' : '')
                 : '全天休息';
@@ -383,7 +445,6 @@
         });
     }
 
-    // 打开详情页
     function openDetail(index) {
         currentActiveDate = index;
         document.getElementById('list-view').style.display = 'none';
@@ -392,7 +453,6 @@
         renderDetail();
     }
 
-    // 返回列表页
     function goBack() {
         document.getElementById('detail-view').style.display = 'none';
         document.getElementById('list-view').style.display = 'flex';
@@ -400,44 +460,38 @@
         renderList(); 
     }
 
-    // 渲染详情页内容 (按学科分组)
     function renderDetail() {
         if (currentActiveDate === null) return;
         
         const dayData = scheduleData[currentActiveDate];
-        const totalTasks = dayData.tasks.length;
-        const completedTasks = dayData.tasks.filter(t => t.done).length;
-        const progressPercent = totalTasks === 0 ? 100 : Math.round((completedTasks / totalTasks) * 100);
+        updateDetailProgress(dayData);
         
         document.getElementById('detail-date-title').innerText = `${dayData.date}`;
-        document.getElementById('detail-progress-text').innerText = `已完成 ${progressPercent}%`;
         
         const container = document.getElementById('detail-tasks');
         container.innerHTML = '';
 
-        if (totalTasks === 0) {
+        if (dayData.tasks.length === 0) {
             container.innerHTML = '<div class="empty-state">今天没有任何任务，好好休息吧！☕</div>';
             return;
         }
 
-        // 提取各个学科的任务
         const englishTasks = dayData.tasks.filter(t => t.subject === 'english');
         const mathTasks = dayData.tasks.filter(t => t.subject === 'math');
         const profTasks = dayData.tasks.filter(t => t.subject === 'prof');
 
-        // 按分类渲染
-        if (englishTasks.length > 0) {
-            container.appendChild(createTaskGroup('📚 英语 (六级 & 单词)', englishTasks));
-        }
-        if (mathTasks.length > 0) {
-            container.appendChild(createTaskGroup('📐 数学', mathTasks));
-        }
-        if (profTasks.length > 0) {
-            container.appendChild(createTaskGroup('💻 专业课', profTasks));
-        }
+        if (englishTasks.length > 0) container.appendChild(createTaskGroup('📚 英语 (六级 & 单词)', englishTasks));
+        if (mathTasks.length > 0) container.appendChild(createTaskGroup('📐 数学', mathTasks));
+        if (profTasks.length > 0) container.appendChild(createTaskGroup('💻 专业课', profTasks));
     }
 
-    // 创建任务组DOM
+    function updateDetailProgress(dayData) {
+        const totalTasks = dayData.tasks.length;
+        const completedTasks = dayData.tasks.filter(t => t.done).length;
+        const progressPercent = totalTasks === 0 ? 100 : Math.round((completedTasks / totalTasks) * 100);
+        document.getElementById('detail-progress-text').innerText = `已完成 ${progressPercent}%`;
+    }
+
     function createTaskGroup(title, tasks) {
         const group = document.createElement('div');
         group.className = 'task-group';
@@ -448,8 +502,12 @@
         group.appendChild(titleEl);
 
         tasks.forEach(task => {
-            const item = document.createElement('label');
+            const item = document.createElement('div');
             item.className = 'task-item';
+            
+            // 左侧内容区：打勾框 + 文字
+            const contentDiv = document.createElement('label');
+            contentDiv.className = 'task-content';
             
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -461,26 +519,95 @@
             label.className = 'task-label';
             label.innerText = task.text;
 
-            item.appendChild(checkbox);
-            item.appendChild(label);
+            contentDiv.appendChild(checkbox);
+            contentDiv.appendChild(label);
+
+            // 右侧操作区：修改 + 删除
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'task-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'icon-btn';
+            editBtn.innerText = '✏️';
+            editBtn.onclick = () => editTask(task.id, task.text);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'icon-btn';
+            delBtn.innerText = '🗑️';
+            delBtn.onclick = () => deleteTask(task.id);
+
+            actionsDiv.appendChild(editBtn);
+            actionsDiv.appendChild(delBtn);
+
+            item.appendChild(contentDiv);
+            item.appendChild(actionsDiv);
             group.appendChild(item);
         });
 
         return group;
     }
 
-    // 切换任务状态
     function toggleTask(taskId, isDone) {
         const dayData = scheduleData[currentActiveDate];
         const task = dayData.tasks.find(t => t.id === taskId);
         if (task) {
             task.done = isDone;
             saveData();
-            // 实时更新详情页顶部的百分比
-            const totalTasks = dayData.tasks.length;
-            const completedTasks = dayData.tasks.filter(t => t.done).length;
-            const progressPercent = totalTasks === 0 ? 100 : Math.round((completedTasks / totalTasks) * 100);
-            document.getElementById('detail-progress-text').innerText = `已完成 ${progressPercent}%`;
+            updateDetailProgress(dayData);
+        }
+    }
+
+    // 新增：动态添加任务
+    function addNewTask() {
+        const subject = document.getElementById('new-task-subject').value;
+        const textInput = document.getElementById('new-task-text');
+        const text = textInput.value.trim();
+
+        if (!text) {
+            alert('请输入任务内容！');
+            return;
+        }
+
+        const dayData = scheduleData[currentActiveDate];
+        // 生成唯一ID
+        const newId = `custom-${Date.now()}`;
+        
+        dayData.tasks.push({
+            id: newId,
+            subject: subject,
+            text: text,
+            done: false
+        });
+
+        textInput.value = ''; // 清空输入框
+        saveData();
+        renderDetail(); // 重新渲染页面
+    }
+
+    // 新增：编辑任务
+    function editTask(taskId, oldText) {
+        const newText = prompt('修改任务内容：', oldText);
+        if (newText !== null && newText.trim() !== '') {
+            const dayData = scheduleData[currentActiveDate];
+            const task = dayData.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.text = newText.trim();
+                saveData();
+                renderDetail();
+            }
+        }
+    }
+
+    // 新增：删除任务
+    function deleteTask(taskId) {
+        if (confirm('确定要删除这个任务吗？')) {
+            const dayData = scheduleData[currentActiveDate];
+            const taskIndex = dayData.tasks.findIndex(t => t.id === taskId);
+            if (taskIndex > -1) {
+                dayData.tasks.splice(taskIndex, 1);
+                saveData();
+                renderDetail();
+            }
         }
     }
 
