@@ -11,10 +11,9 @@
             --text-main: #5C544D;
             --text-light: #9E968F;
             --accent-color: #D4C4B7;
-            --accent-hover: #C2B0A1;
             --success-color: #A3B899;
             --border-color: #EFEBE6;
-            --danger-color: #E2A09F;
+            --blue-light: #B4CDE6; /* 治愈系浅蓝 */
         }
 
         * {
@@ -28,12 +27,69 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             line-height: 1.6;
-            padding: 30px 20px;
+            padding: 20px 15px;
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        /* 顶部时间轴 (小圆圈) */
+        .timeline-wrapper {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            overflow-x: auto;
+            white-space: nowrap;
+            /* 隐藏滚动条但保留功能 */
+            scrollbar-width: none; 
+        }
+        .timeline-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .timeline {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            min-width: 30px;
+        }
+
+        .circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .circle.completed {
+            background-color: var(--blue-light);
+            border-color: var(--blue-light);
+        }
+
+        .circle.rest {
+            border-style: dashed;
+            border-color: #D3D3D3;
+        }
+
+        .circle-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
         }
 
         /* 列表页视图 */
@@ -50,12 +106,11 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.02);
             border: 1px solid var(--border-color);
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s ease;
         }
 
         .day-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
         }
 
         .day-card.rest-day {
@@ -128,11 +183,6 @@
             align-items: center;
             gap: 5px;
             margin-bottom: 20px;
-            transition: color 0.2s;
-        }
-
-        .back-btn:hover {
-            color: var(--text-main);
         }
 
         .detail-header {
@@ -144,16 +194,8 @@
             align-items: center;
         }
 
-        .detail-date {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .detail-progress {
-            font-size: 0.9rem;
-            color: var(--success-color);
-            font-weight: 600;
-        }
+        .detail-date { font-size: 1.5rem; font-weight: 600; }
+        .detail-progress { font-size: 0.9rem; color: var(--success-color); font-weight: 600; }
 
         .task-group {
             margin-bottom: 25px;
@@ -178,16 +220,6 @@
             margin-bottom: 12px;
             padding: 8px 10px;
             border-radius: 8px;
-            transition: background 0.2s;
-        }
-        
-        .task-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .task-item:hover {
-            background-color: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
         .task-content {
@@ -209,59 +241,42 @@
             position: relative;
             flex-shrink: 0;
             margin-top: 2px;
-            transition: all 0.2s ease;
         }
+        .checkbox:checked { background-color: var(--success-color); border-color: var(--success-color); }
+        .checkbox:checked::after { content: '✓'; position: absolute; color: white; font-size: 14px; left: 3px; top: -1px; }
 
-        .checkbox:checked {
-            background-color: var(--success-color);
-            border-color: var(--success-color);
-        }
-
-        .checkbox:checked::after {
-            content: '✓';
-            position: absolute;
-            color: white;
-            font-size: 14px;
-            left: 3px;
-            top: -1px;
+        .task-text-wrapper {
+            display: flex;
+            flex-direction: column;
         }
 
         .task-label {
             font-size: 0.95rem;
             cursor: pointer;
             user-select: none;
-            transition: color 0.2s;
             line-height: 1.4;
             word-break: break-all;
         }
+        .task-item input:checked + .task-text-wrapper .task-label { color: var(--text-light); text-decoration: line-through; }
 
-        .task-item input:checked + .task-label {
+        .task-note {
+            font-size: 0.8rem;
             color: var(--text-light);
-            text-decoration: line-through;
+            margin-top: 4px;
+            background: var(--bg-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border-left: 2px solid var(--accent-color);
         }
 
-        /* 增删改 操作按钮 */
         .task-actions {
             display: flex;
             gap: 8px;
-            opacity: 0.7;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            cursor: pointer;
-            padding: 2px;
-            color: var(--text-light);
-        }
-
-        .icon-btn:hover {
             opacity: 0.8;
-            transform: scale(1.1);
         }
+        .icon-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 2px; }
 
-        /* 底部添加任务区域 */
+        /* 底部增加/设置区域 */
         .add-task-container {
             margin-top: 30px;
             background: #FAFAFA;
@@ -272,55 +287,66 @@
             flex-direction: column;
             gap: 10px;
         }
-
-        .add-task-container select, 
-        .add-task-container input {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            color: var(--text-main);
-            background: white;
+        .add-task-container select, .add-task-container input {
+            padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none;
         }
-
         .add-task-container button {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            font-weight: 600;
+            background: var(--accent-color); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;
         }
 
-        .add-task-container button:active {
-            background: var(--accent-hover);
-        }
-
-        .empty-state {
+        .settings-btn-wrap {
             text-align: center;
-            color: var(--text-light);
-            padding: 40px 0;
-            font-size: 0.95rem;
+            margin-top: 30px;
         }
+        .settings-btn {
+            background: none; border: none; color: var(--text-light); font-size: 0.9rem; cursor: pointer; text-decoration: underline;
+        }
+
+        /* 弹窗样式 (抽卡与设置通用) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--card-bg); width: 85%; max-width: 400px; padding: 25px; border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+        }
+        .modal-content textarea {
+            width: 100%; margin: 15px 0; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 0.85rem; outline: none;
+        }
+        .modal-actions {
+            display: flex; gap: 10px; justify-content: center; margin-top: 15px;
+        }
+        .modal-actions button {
+            padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; background: var(--border-color); color: var(--text-main);
+        }
+        .modal-actions button.primary { background: var(--accent-color); color: white; }
+
+        /* 抽卡特定样式 */
+        .card-title { font-size: 1.1rem; color: var(--accent-color); font-weight: 600; margin-bottom: 15px; }
+        .card-text { font-size: 1rem; color: var(--text-main); line-height: 1.6; margin-bottom: 20px; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="list-view">
-        </div>
+    <div class="timeline-wrapper">
+        <div class="timeline" id="timeline"></div>
+    </div>
+
+    <div id="list-view"></div>
+    
+    <div class="settings-btn-wrap" id="settings-wrap">
+        <button class="settings-btn" onclick="openSettings()">⚙️ 备份与恢复进度</button>
+    </div>
 
     <div id="detail-view">
         <button class="back-btn" onclick="goBack()">← 返回日程</button>
         <div class="detail-header">
-            <h2 class="detail-date" id="detail-date-title">5月22日</h2>
-            <span class="detail-progress" id="detail-progress-text">100%</span>
+            <h2 class="detail-date" id="detail-date-title"></h2>
+            <span class="detail-progress" id="detail-progress-text"></span>
         </div>
-        <div id="detail-tasks">
-            </div>
+        <div id="detail-tasks"></div>
 
         <div class="add-task-container">
             <select id="new-task-subject">
@@ -334,8 +360,32 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="card-modal">
+    <div class="modal-content">
+        <div class="card-title">✨ 今日能量指引</div>
+        <div class="card-text" id="daily-card-content"></div>
+        <div class="modal-actions">
+            <button class="primary" onclick="closeCardModal()" style="width:100%">开启专注的一天</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settings-modal">
+    <div class="modal-content">
+        <h3 style="font-size:1.1rem; color:var(--text-main);">数据备份与恢复</h3>
+        <p style="font-size:0.8rem; color:var(--text-light); margin-top:5px;">复制下方代码保存，或粘贴以前的代码恢复进度</p>
+        <textarea id="backup-data" rows="6"></textarea>
+        <div class="modal-actions">
+            <button onclick="copyBackup()">复制备份</button>
+            <button class="primary" onclick="restoreBackup()">粘贴恢复</button>
+        </div>
+        <div class="modal-actions" style="margin-top:10px">
+            <button onclick="closeSettings()" style="width:100%; background:transparent; border:1px solid var(--border-color);">关闭</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // 基础数据配置 v4
     const rawData = [
         { date: '5/22', isRest: false, newEng: '六级：听力第1套+写作', newMath: '数学：高数-极限与连续', newProf: '自控：系统数学模型建构', newWord: '单词日常' },
         { date: '5/23', isRest: false, newEng: '六级：阅读第2套+翻译', newMath: '数学：高数-一元函数微分学', newProf: '自控：时域分析(一阶与二阶)', newWord: '单词日常' },
@@ -360,8 +410,7 @@
     ];
 
     const reviewMap = {
-        '5/23': ['复盘: 5/22 六级听力/写作'],
-        '5/24': ['复盘: 5/23 六级阅读/翻译'],
+        '5/23': ['复盘: 5/22 六级听力/写作'], '5/24': ['复盘: 5/23 六级阅读/翻译'],
         '5/25': ['复盘: 5/22 六级听力/写作', '复盘: 5/24 六级听力/写作①', '复盘: 5/22 数学(极限与连续)', '复盘: 5/22 专业课(系统建模)'],
         '5/26': ['复盘: 5/23 六级阅读/翻译', '复盘: 5/25 六级阅读/翻译', '复盘: 5/23 数学(一元微分)', '复盘: 5/23 专业课(时域一阶/二阶)'],
         '5/27': ['复盘: 5/24 六级听力/写作①', '复盘: 5/26 六级听力/写作', '复盘: 5/24 数学(一元积分)', '复盘: 5/24 专业课(时域高阶/稳定)'],
@@ -379,29 +428,40 @@
         '6/10': ['复盘: 6/3 六级模拟③', '复盘: 5/27 数学(微分方程)', '复盘: 5/27 专业课(广义根轨迹)']
     };
 
+    // 每日能量指引语 (结合塔罗/八字/意象)
+    const dailyCards = [
+        "愚人正位：放下焦虑与成见，今天是一个轻装上阵的全新开始。",
+        "星币骑士：踏实走好每一步，今天的复盘将成为明日最坚固的基石。",
+        "权杖八：行动力爆发的一天！去攻克那些难搞的数学题吧。",
+        "食神生财：专注自身的产出与积累，所有的努力终会化为实质的收获。",
+        "女祭司：保持内心的平静与直觉，适合深度思考专业课的一天。",
+        "Lenormand 锚：稳定你的内核。外界的繁杂与你无关，只需锚定你的目标。",
+        "太阳正位：拨云见日，今天的思绪会格外清晰，相信自己的力量。"
+    ];
+
     let scheduleData = [];
     let currentActiveDate = null;
+    const STORAGE_KEY = 'nd_study_schedule_v5';
 
-    // 采用 v4 本地存储，避免新旧结构冲突
     function initData() {
-        const localData = localStorage.getItem('nd_study_schedule_v4');
+        const localData = localStorage.getItem(STORAGE_KEY);
         if (localData) {
             scheduleData = JSON.parse(localData);
         } else {
             scheduleData = rawData.map(day => {
                 let tasks = [];
-                
-                if (day.newWord) tasks.push({ id: `${day.date}-word`, subject: 'english', text: day.newWord, done: false });
-                if (!day.isRest && day.newEng) tasks.push({ id: `${day.date}-eng`, subject: 'english', text: day.newEng, done: false });
-                if (!day.isRest && day.newMath) tasks.push({ id: `${day.date}-math`, subject: 'math', text: day.newMath, done: false });
-                if (!day.isRest && day.newProf) tasks.push({ id: `${day.date}-prof`, subject: 'prof', text: day.newProf, done: false });
+                // 增加了 note 属性
+                if (day.newWord) tasks.push({ id: `${day.date}-word`, subject: 'english', text: day.newWord, done: false, note: '' });
+                if (!day.isRest && day.newEng) tasks.push({ id: `${day.date}-eng`, subject: 'english', text: day.newEng, done: false, note: '' });
+                if (!day.isRest && day.newMath) tasks.push({ id: `${day.date}-math`, subject: 'math', text: day.newMath, done: false, note: '' });
+                if (!day.isRest && day.newProf) tasks.push({ id: `${day.date}-prof`, subject: 'prof', text: day.newProf, done: false, note: '' });
 
                 const reviews = reviewMap[day.date] || [];
                 reviews.forEach((rev, idx) => {
                     let subj = 'english';
                     if (rev.includes('数学')) subj = 'math';
                     if (rev.includes('专业课')) subj = 'prof';
-                    tasks.push({ id: `${day.date}-rev-${idx}`, subject: subj, text: rev, done: false });
+                    tasks.push({ id: `${day.date}-rev-${idx}`, subject: subj, text: rev, done: false, note: '' });
                 });
 
                 return { date: day.date, isRest: day.isRest, tasks: tasks };
@@ -410,8 +470,40 @@
         }
     }
 
-    function saveData() {
-        localStorage.setItem('nd_study_schedule_v4', JSON.stringify(scheduleData));
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(scheduleData)); }
+
+    // 渲染顶部时间轴圆圈
+    function renderTimeline() {
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = '';
+        
+        scheduleData.forEach((day, index) => {
+            const totalTasks = day.tasks.length;
+            const completedTasks = day.tasks.filter(t => t.done).length;
+            const isCompleted = totalTasks > 0 && completedTasks === totalTasks;
+            
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            
+            // 提取日期中的天数，如 5/22 提取出 22
+            const dayNum = day.date.split('/')[1];
+            
+            let circleClass = 'circle';
+            if (day.isRest && totalTasks <= 1) circleClass += ' rest'; // 休息日虚线圈
+            else if (isCompleted) circleClass += ' completed'; // 完成变浅蓝色
+            
+            item.innerHTML = `
+                <div class="${circleClass}"></div>
+                <div class="circle-label">${dayNum}</div>
+            `;
+            
+            // 点击圆圈直接跳转到该天
+            item.onclick = () => {
+                if(currentActiveDate !== index) openDetail(index);
+            };
+            
+            timeline.appendChild(item);
+        });
     }
 
     function renderList() {
@@ -443,11 +535,14 @@
             `;
             listContainer.appendChild(card);
         });
+        
+        renderTimeline(); // 每次渲染列表也同步更新顶部圆圈
     }
 
     function openDetail(index) {
         currentActiveDate = index;
         document.getElementById('list-view').style.display = 'none';
+        document.getElementById('settings-wrap').style.display = 'none';
         document.getElementById('detail-view').style.display = 'block';
         window.scrollTo(0, 0);
         renderDetail();
@@ -456,16 +551,15 @@
     function goBack() {
         document.getElementById('detail-view').style.display = 'none';
         document.getElementById('list-view').style.display = 'flex';
+        document.getElementById('settings-wrap').style.display = 'block';
         currentActiveDate = null;
         renderList(); 
     }
 
     function renderDetail() {
         if (currentActiveDate === null) return;
-        
         const dayData = scheduleData[currentActiveDate];
         updateDetailProgress(dayData);
-        
         document.getElementById('detail-date-title').innerText = `${dayData.date}`;
         
         const container = document.getElementById('detail-tasks');
@@ -505,7 +599,6 @@
             const item = document.createElement('div');
             item.className = 'task-item';
             
-            // 左侧内容区：打勾框 + 文字
             const contentDiv = document.createElement('label');
             contentDiv.className = 'task-content';
             
@@ -515,16 +608,33 @@
             checkbox.checked = task.done;
             checkbox.onchange = (e) => toggleTask(task.id, e.target.checked);
 
+            const textWrapper = document.createElement('div');
+            textWrapper.className = 'task-text-wrapper';
+            
             const label = document.createElement('span');
             label.className = 'task-label';
             label.innerText = task.text;
+            textWrapper.appendChild(label);
+
+            // 如果有备注，显示备注内容
+            if (task.note && task.note.trim() !== '') {
+                const noteEl = document.createElement('div');
+                noteEl.className = 'task-note';
+                noteEl.innerText = `💡 ${task.note}`;
+                textWrapper.appendChild(noteEl);
+            }
 
             contentDiv.appendChild(checkbox);
-            contentDiv.appendChild(label);
+            contentDiv.appendChild(textWrapper);
 
-            // 右侧操作区：修改 + 删除
+            // 右侧操作区：备注 + 修改 + 删除
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'task-actions';
+
+            const noteBtn = document.createElement('button');
+            noteBtn.className = 'icon-btn';
+            noteBtn.innerText = '📝';
+            noteBtn.onclick = () => addNote(task.id, task.note);
 
             const editBtn = document.createElement('button');
             editBtn.className = 'icon-btn';
@@ -536,6 +646,7 @@
             delBtn.innerText = '🗑️';
             delBtn.onclick = () => deleteTask(task.id);
 
+            actionsDiv.appendChild(noteBtn);
             actionsDiv.appendChild(editBtn);
             actionsDiv.appendChild(delBtn);
 
@@ -554,66 +665,105 @@
             task.done = isDone;
             saveData();
             updateDetailProgress(dayData);
+            renderTimeline(); // 更新顶部圆圈状态
         }
     }
 
-    // 新增：动态添加任务
     function addNewTask() {
         const subject = document.getElementById('new-task-subject').value;
         const textInput = document.getElementById('new-task-text');
         const text = textInput.value.trim();
-
-        if (!text) {
-            alert('请输入任务内容！');
-            return;
-        }
+        if (!text) { alert('请输入任务内容！'); return; }
 
         const dayData = scheduleData[currentActiveDate];
-        // 生成唯一ID
-        const newId = `custom-${Date.now()}`;
-        
-        dayData.tasks.push({
-            id: newId,
-            subject: subject,
-            text: text,
-            done: false
-        });
-
-        textInput.value = ''; // 清空输入框
+        dayData.tasks.push({ id: `custom-${Date.now()}`, subject: subject, text: text, done: false, note: '' });
+        textInput.value = ''; 
         saveData();
-        renderDetail(); // 重新渲染页面
+        renderDetail(); 
+        renderTimeline();
     }
 
-    // 新增：编辑任务
     function editTask(taskId, oldText) {
         const newText = prompt('修改任务内容：', oldText);
         if (newText !== null && newText.trim() !== '') {
-            const dayData = scheduleData[currentActiveDate];
-            const task = dayData.tasks.find(t => t.id === taskId);
-            if (task) {
-                task.text = newText.trim();
-                saveData();
-                renderDetail();
-            }
+            const task = scheduleData[currentActiveDate].tasks.find(t => t.id === taskId);
+            if (task) { task.text = newText.trim(); saveData(); renderDetail(); }
         }
     }
 
-    // 新增：删除任务
+    function addNote(taskId, oldNote) {
+        const newNote = prompt('添加复盘备注/错题记录（留空则删除备注）：', oldNote || '');
+        if (newNote !== null) {
+            const task = scheduleData[currentActiveDate].tasks.find(t => t.id === taskId);
+            if (task) { task.note = newNote.trim(); saveData(); renderDetail(); }
+        }
+    }
+
     function deleteTask(taskId) {
         if (confirm('确定要删除这个任务吗？')) {
             const dayData = scheduleData[currentActiveDate];
             const taskIndex = dayData.tasks.findIndex(t => t.id === taskId);
             if (taskIndex > -1) {
                 dayData.tasks.splice(taskIndex, 1);
-                saveData();
-                renderDetail();
+                saveData(); renderDetail(); renderTimeline();
             }
         }
+    }
+
+    /* --- 设置与备份逻辑 --- */
+    function openSettings() {
+        document.getElementById('settings-modal').style.display = 'flex';
+        document.getElementById('backup-data').value = JSON.stringify(scheduleData);
+    }
+    function closeSettings() {
+        document.getElementById('settings-modal').style.display = 'none';
+    }
+    function copyBackup() {
+        const textarea = document.getElementById('backup-data');
+        textarea.select();
+        document.execCommand('copy');
+        alert('数据已复制到剪贴板！你可以将这段文字保存在备忘录中。');
+    }
+    function restoreBackup() {
+        const jsonStr = document.getElementById('backup-data').value.trim();
+        if(!jsonStr) { alert('请先粘贴备份数据！'); return; }
+        try {
+            const parsedData = JSON.parse(jsonStr);
+            if(Array.isArray(parsedData) && parsedData.length > 0) {
+                scheduleData = parsedData;
+                saveData();
+                closeSettings();
+                renderList();
+                alert('进度恢复成功！');
+            } else { alert('数据格式不正确！'); }
+        } catch(e) {
+            alert('粘贴的内容不是有效的数据代码，请检查！');
+        }
+    }
+
+    /* --- 每日抽卡逻辑 --- */
+    function checkDailyCard() {
+        const todayStr = new Date().toLocaleDateString();
+        const lastDraw = localStorage.getItem('nd_last_draw_date');
+        
+        if (lastDraw !== todayStr) {
+            // 今天还没抽过卡，显示弹窗
+            const randomQuote = dailyCards[Math.floor(Math.random() * dailyCards.length)];
+            document.getElementById('daily-card-content').innerText = randomQuote;
+            document.getElementById('card-modal').style.display = 'flex';
+            // 记录今天已抽
+            localStorage.setItem('nd_last_draw_date', todayStr);
+        }
+    }
+    function closeCardModal() {
+        document.getElementById('card-modal').style.display = 'none';
     }
 
     // 启动应用
     initData();
     renderList();
+    // 延迟一点显示抽卡，让页面先加载完
+    setTimeout(checkDailyCard, 500);
 
 </script>
 </body>
