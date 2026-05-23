@@ -56,7 +56,7 @@ function renderList(){
   var html="";
   for(var i=0;i<plan.length;i++){
     var d=plan[i],pc=PC[d.phase]||"#6b6b8a",p=prog(d,i),pct=p.total?Math.round(p.done/p.total*100):0;
-    html+="<div class='card"+(d.rest?" rest":"")+"' onclick='open("+i+")'>"
+    html+="<div class='card"+(d.rest?" rest":"")+"' onclick='openDay("+i+")'>"
       +"<div style='width:3px;height:40px;border-radius:2px;background:"+pc+";flex-shrink:0'></div>"
       +"<div style='min-width:40px;text-align:center'>"
         +"<div style='font-size:17px;font-weight:700;color:"+(d.note?"#f7c87e":"#e8e4d9")+"'>"+d.date.slice(3)+"</div>"
@@ -75,13 +75,13 @@ function renderList(){
   document.getElementById("mainlist").innerHTML=html;
 }
 
-function open(idx){
+function openDay(idx){
   sel=idx;
   var day=plan[idx],pc=PC[day.phase]||"#6b6b8a",p=prog(day,idx);
   document.getElementById("mainlist").style.display="none";
   var det=document.getElementById("detail");
   det.style.display="block";
-  var html="<button class='back' onclick='close()'>← 返回</button>"
+  var html="<button class='back' onclick='closeDay()'>← 返回</button>"
     +"<div style='font-size:22px;font-weight:700;margin-bottom:4px'>"+day.date+" "+day.day+"</div>"
     +"<div style='font-size:12px;font-weight:600;color:"+pc+";margin-bottom:8px'>"+day.phase+"</div>"
     +(day.note?"<div style='font-size:12px;color:#f7c87e;margin-bottom:12px'>"+day.note+"</div>":"")
@@ -114,7 +114,7 @@ function open(idx){
   det.innerHTML=html;
 }
 
-function close(){
+function closeDay(){
   sel=null;
   document.getElementById("mainlist").style.display="block";
   document.getElementById("detail").style.display="none";
