@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>备考日程表</title>
+    <title>2027南大备考日程</title>
     <style>
         :root {
             --bg-color: #FAF8F5;
@@ -13,7 +13,10 @@
             --accent-color: #D4C4B7;
             --success-color: #A3B899;
             --border-color: #EFEBE6;
-            --blue-light: #B4CDE6; /* 治愈系浅蓝 */
+            --blue-light: #B4CDE6;   /* 治愈系浅蓝 - 完成态 */
+            --blue-heat-1: #E1EAF4;  /* 热力图浅色 1-49% */
+            --blue-heat-2: #9ABCE0;  /* 热力图深色 50-99% */
+            --blue-heat-3: #6A9BCC;  /* 热力图全满 100% */
         }
 
         * {
@@ -36,308 +39,148 @@
             padding-bottom: 60px;
         }
 
+        /* 顶部目标与倒计时 */
+        .header-goal {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+        }
+        .header-goal h1 {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .header-goal .countdown {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
         /* 顶部时间轴 (小圆圈) */
         .timeline-wrapper {
             background-color: var(--card-bg);
             border-radius: 12px;
             padding: 15px 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid var(--border-color);
             box-shadow: 0 4px 15px rgba(0,0,0,0.02);
             overflow-x: auto;
             white-space: nowrap;
-            /* 隐藏滚动条但保留功能 */
             scrollbar-width: none; 
         }
-        .timeline-wrapper::-webkit-scrollbar {
-            display: none;
-        }
+        .timeline-wrapper::-webkit-scrollbar { display: none; }
+        .timeline { display: flex; gap: 12px; align-items: center; }
+        .timeline-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; min-width: 30px; }
+        .circle { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border-color); background-color: transparent; transition: all 0.3s ease; }
+        .circle.completed { background-color: var(--blue-light); border-color: var(--blue-light); }
+        .circle.rest { border-style: dashed; border-color: #D3D3D3; }
+        .circle-label { font-size: 0.75rem; color: var(--text-light); }
 
-        .timeline {
-            display: flex;
-            gap: 12px;
-            align-items: center;
+        /* 莫兰迪热力图矩阵 */
+        .heatmap-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
         }
-
-        .timeline-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .heatmap-title {
+            font-size: 0.85rem; color: var(--text-light); margin-bottom: 10px; text-align: center; letter-spacing: 1px;
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
             gap: 6px;
-            cursor: pointer;
-            min-width: 30px;
+            justify-content: center;
         }
-
-        .circle {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2px solid var(--border-color);
-            background-color: transparent;
-            transition: all 0.3s ease;
+        .heat-cell {
+            aspect-ratio: 1 / 1;
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            transition: background-color 0.4s ease;
         }
-
-        .circle.completed {
-            background-color: var(--blue-light);
-            border-color: var(--blue-light);
-        }
-
-        .circle.rest {
-            border-style: dashed;
-            border-color: #D3D3D3;
-        }
-
-        .circle-label {
-            font-size: 0.75rem;
-            color: var(--text-light);
-        }
+        .heat-cell[data-level="1"] { background-color: var(--blue-heat-1); }
+        .heat-cell[data-level="2"] { background-color: var(--blue-heat-2); }
+        .heat-cell[data-level="3"] { background-color: var(--blue-heat-3); }
 
         /* 列表页视图 */
-        #list-view {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .day-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 18px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .day-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .day-card.rest-day {
-            background-color: #FDFCFB;
-            opacity: 0.8;
-        }
-
-        .day-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .day-date {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .day-status {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            background: var(--bg-color);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background-color: var(--border-color);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background-color: var(--success-color);
-            transition: width 0.3s ease;
-        }
-
-        .task-preview {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        #list-view { display: flex; flex-direction: column; gap: 15px; }
+        .day-card { background-color: var(--card-bg); border-radius: 12px; padding: 18px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s ease; }
+        .day-card:hover { transform: translateY(-2px); }
+        .day-card.rest-day { background-color: #FDFCFB; opacity: 0.8; }
+        .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .day-date { font-size: 1.1rem; font-weight: 600; }
+        .day-status { font-size: 0.85rem; color: var(--text-light); background: var(--bg-color); padding: 4px 10px; border-radius: 12px; font-weight: 500; }
+        .progress-bar { width: 100%; height: 6px; background-color: var(--border-color); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+        .progress-fill { height: 100%; background-color: var(--success-color); transition: width 0.3s ease; }
+        .task-preview { font-size: 0.85rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* 详情页视图 */
-        #detail-view {
-            display: none;
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            border: 1px solid var(--border-color);
-            min-height: 400px;
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        .detail-header {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
+        #detail-view { display: none; background-color: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border-color); min-height: 400px; }
+        .back-btn { background: none; border: none; color: var(--text-light); font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-bottom: 20px; }
+        .detail-header { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .detail-date { font-size: 1.5rem; font-weight: 600; }
         .detail-progress { font-size: 0.9rem; color: var(--success-color); font-weight: 600; }
-
-        .task-group {
-            margin-bottom: 25px;
-            background: #FAFAFA;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #F0F0F0;
-        }
-
-        .task-group-title {
-            font-size: 0.95rem;
-            color: var(--text-main);
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .task-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
-            padding: 8px 10px;
-            border-radius: 8px;
-        }
-
-        .task-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .checkbox {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--accent-color);
-            border-radius: 5px;
-            outline: none;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
+        .task-group { margin-bottom: 25px; background: #FAFAFA; padding: 15px; border-radius: 12px; border: 1px solid #F0F0F0; }
+        .task-group-title { font-size: 0.95rem; color: var(--text-main); margin-bottom: 15px; font-weight: 600; }
+        .task-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding: 8px 10px; border-radius: 8px; }
+        .task-content { display: flex; align-items: flex-start; gap: 12px; flex: 1; }
+        .checkbox { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; border: 2px solid var(--accent-color); border-radius: 5px; outline: none; cursor: pointer; position: relative; flex-shrink: 0; margin-top: 2px; }
         .checkbox:checked { background-color: var(--success-color); border-color: var(--success-color); }
         .checkbox:checked::after { content: '✓'; position: absolute; color: white; font-size: 14px; left: 3px; top: -1px; }
-
-        .task-text-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .task-label {
-            font-size: 0.95rem;
-            cursor: pointer;
-            user-select: none;
-            line-height: 1.4;
-            word-break: break-all;
-        }
+        .task-text-wrapper { display: flex; flex-direction: column; }
+        .task-label { font-size: 0.95rem; cursor: pointer; user-select: none; line-height: 1.4; word-break: break-all; }
         .task-item input:checked + .task-text-wrapper .task-label { color: var(--text-light); text-decoration: line-through; }
-
-        .task-note {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-top: 4px;
-            background: var(--bg-color);
-            padding: 4px 8px;
-            border-radius: 6px;
-            border-left: 2px solid var(--accent-color);
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 8px;
-            opacity: 0.8;
-        }
+        .task-note { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; background: var(--bg-color); padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--accent-color); }
+        .task-actions { display: flex; gap: 8px; opacity: 0.8; }
         .icon-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 2px; }
 
         /* 底部增加/设置区域 */
-        .add-task-container {
-            margin-top: 30px;
-            background: #FAFAFA;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px dashed var(--accent-color);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .add-task-container select, .add-task-container input {
-            padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none;
-        }
-        .add-task-container button {
-            background: var(--accent-color); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer;
-        }
+        .add-task-container { margin-top: 30px; background: #FAFAFA; padding: 15px; border-radius: 12px; border: 1px dashed var(--accent-color); display: flex; flex-direction: column; gap: 10px; }
+        .add-task-container select, .add-task-container input { padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; }
+        .add-task-container button { background: var(--accent-color); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .settings-btn-wrap { text-align: center; margin-top: 30px; }
+        .settings-btn { background: none; border: none; color: var(--text-light); font-size: 0.9rem; cursor: pointer; text-decoration: underline; }
 
-        .settings-btn-wrap {
-            text-align: center;
-            margin-top: 30px;
-        }
-        .settings-btn {
-            background: none; border: none; color: var(--text-light); font-size: 0.9rem; cursor: pointer; text-decoration: underline;
-        }
+        /* 弹窗样式 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); width: 85%; max-width: 400px; padding: 30px 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; position: relative; overflow: hidden; }
+        .modal-content textarea { width: 100%; margin: 15px 0; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 0.85rem; outline: none; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .modal-actions button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; background: var(--border-color); color: var(--text-main); font-weight: 600; }
+        .modal-actions button.primary { background: var(--accent-color); color: white; width: 100%; }
 
-        /* 弹窗样式 (抽卡与设置通用) */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: var(--card-bg); width: 85%; max-width: 400px; padding: 25px; border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
-        }
-        .modal-content textarea {
-            width: 100%; margin: 15px 0; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 0.85rem; outline: none;
-        }
-        .modal-actions {
-            display: flex; gap: 10px; justify-content: center; margin-top: 15px;
-        }
-        .modal-actions button {
-            padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; background: var(--border-color); color: var(--text-main);
-        }
-        .modal-actions button.primary { background: var(--accent-color); color: white; }
-
-        /* 抽卡特定样式 */
-        .card-title { font-size: 1.1rem; color: var(--accent-color); font-weight: 600; margin-bottom: 15px; }
-        .card-text { font-size: 1rem; color: var(--text-main); line-height: 1.6; margin-bottom: 20px; font-style: italic; }
+        /* 塔罗/雷诺曼 抽卡特定样式 */
+        .card-decoration { font-size: 2.5rem; margin-bottom: 10px; }
+        .card-title { font-size: 1.2rem; color: var(--text-main); font-weight: 600; margin-bottom: 8px; }
+        .card-subtitle { font-size: 0.85rem; color: var(--accent-color); letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }
+        .card-text { font-size: 0.95rem; color: var(--text-main); line-height: 1.8; margin-bottom: 25px; text-align: left; background: var(--bg-color); padding: 15px; border-radius: 10px; border-left: 3px solid var(--accent-color); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="timeline-wrapper">
+    <div class="header-goal">
+        <h1>2027 南大控制专硕 & 六级冲刺</h1>
+        <div class="countdown" id="countdown-text"></div>
+    </div>
+
+    <div class="heatmap-container" id="global-modules">
+        <div class="heatmap-title">STAY FOCUSED · 备考热力图</div>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+    </div>
+
+    <div class="timeline-wrapper" id="global-timeline">
         <div class="timeline" id="timeline"></div>
     </div>
 
     <div id="list-view"></div>
     
     <div class="settings-btn-wrap" id="settings-wrap">
-        <button class="settings-btn" onclick="openSettings()">⚙️ 备份与恢复进度</button>
+        <button class="settings-btn" onclick="openSettings()">⚙️ 备份与恢复数据</button>
     </div>
 
     <div id="detail-view">
@@ -354,34 +197,34 @@
                 <option value="math">📐 数学</option>
                 <option value="prof">💻 专业课</option>
             </select>
-            <input type="text" id="new-task-text" placeholder="输入你想增加的任务内容..." />
-            <button onclick="addNewTask()">＋ 添加任务到今天</button>
+            <input type="text" id="new-task-text" placeholder="记录新的任务或灵感..." />
+            <button onclick="addNewTask()">＋ 添 加 进 度</button>
         </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="card-modal">
     <div class="modal-content">
-        <div class="card-title">✨ 今日能量指引</div>
+        <div class="card-decoration" id="daily-card-icon">✨</div>
+        <div class="card-title" id="daily-card-title"></div>
+        <div class="card-subtitle">DAILY GUIDANCE</div>
         <div class="card-text" id="daily-card-content"></div>
         <div class="modal-actions">
-            <button class="primary" onclick="closeCardModal()" style="width:100%">开启专注的一天</button>
+            <button class="primary" onclick="closeCardModal()">接收指引，开始复盘</button>
         </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="settings-modal">
     <div class="modal-content">
-        <h3 style="font-size:1.1rem; color:var(--text-main);">数据备份与恢复</h3>
-        <p style="font-size:0.8rem; color:var(--text-light); margin-top:5px;">复制下方代码保存，或粘贴以前的代码恢复进度</p>
+        <h3 style="font-size:1.1rem; color:var(--text-main);">数据管理</h3>
+        <p style="font-size:0.8rem; color:var(--text-light); margin-top:5px;">跨设备同步您的所有打卡与备注进度</p>
         <textarea id="backup-data" rows="6"></textarea>
-        <div class="modal-actions">
-            <button onclick="copyBackup()">复制备份</button>
-            <button class="primary" onclick="restoreBackup()">粘贴恢复</button>
+        <div class="modal-actions" style="flex-direction:row;">
+            <button onclick="copyBackup()" style="flex:1;">复制备份</button>
+            <button class="primary" onclick="restoreBackup()" style="flex:1; width:auto;">粘贴恢复</button>
         </div>
-        <div class="modal-actions" style="margin-top:10px">
-            <button onclick="closeSettings()" style="width:100%; background:transparent; border:1px solid var(--border-color);">关闭</button>
-        </div>
+        <button onclick="closeSettings()" style="width:100%; margin-top:10px; background:transparent; border:1px solid var(--border-color); border-radius:8px; padding:10px;">关闭</button>
     </div>
 </div>
 
@@ -428,20 +271,20 @@
         '6/10': ['复盘: 6/3 六级模拟③', '复盘: 5/27 数学(微分方程)', '复盘: 5/27 专业课(广义根轨迹)']
     };
 
-    // 每日能量指引语 (结合塔罗/八字/意象)
-    const dailyCards = [
-        "愚人正位：放下焦虑与成见，今天是一个轻装上阵的全新开始。",
-        "星币骑士：踏实走好每一步，今天的复盘将成为明日最坚固的基石。",
-        "权杖八：行动力爆发的一天！去攻克那些难搞的数学题吧。",
-        "食神生财：专注自身的产出与积累，所有的努力终会化为实质的收获。",
-        "女祭司：保持内心的平静与直觉，适合深度思考专业课的一天。",
-        "Lenormand 锚：稳定你的内核。外界的繁杂与你无关，只需锚定你的目标。",
-        "太阳正位：拨云见日，今天的思绪会格外清晰，相信自己的力量。"
+    // 专属塔罗/雷诺曼指引语
+    const guidanceCards = [
+        { icon: '🌙', title: '塔罗：隐士 (The Hermit)', text: '今日宜切断外界干扰。不需要比较进度，向内求索，适合静下心来死磕自动控制原理的难点或高数大题。' },
+        { icon: '⚓', title: '雷诺曼：锚 (Anchor)', text: '稳定你的内核。考研二战会有波澜，但外界的繁杂与你无关，只需锚定南京大学的目标，扎实推进今天的每一个复盘。' },
+        { icon: '🗝️', title: '雷诺曼：钥匙 (Key)', text: '突破瓶颈的契机！今天在做数学题或推导控制系统模型时，你极大概率会灵光一闪，找到解题的关键思路。' },
+        { icon: '🐎', title: '塔罗：战车 (The Chariot)', text: '行动力与掌控力的完美结合。冲刺阶段需要极强的自律，今天你将充满干劲，适合大量推进六级真题与专业课进度。' },
+        { icon: '⭐', title: '塔罗：星星 (The Star)', text: '充满希望与灵感的一天。保持对南大控制专硕的憧憬，这份纯粹的愿力会转化为你此刻笔下的动力，一切都在正轨上。' },
+        { icon: '👑', title: '塔罗：皇帝 (The Emperor)', text: '重塑秩序与掌控局势。不要被未知的考题吓倒，拿出你的气场，今天适合构建数学框架与梳理专业课全局。' }
     ];
 
     let scheduleData = [];
     let currentActiveDate = null;
-    const STORAGE_KEY = 'nd_study_schedule_v5';
+    const STORAGE_KEY = 'nd_study_schedule_v6';
+    const EXAM_DATE = new Date('2026-12-26T00:00:00'); // 预设考研初试日期
 
     function initData() {
         const localData = localStorage.getItem(STORAGE_KEY);
@@ -450,7 +293,6 @@
         } else {
             scheduleData = rawData.map(day => {
                 let tasks = [];
-                // 增加了 note 属性
                 if (day.newWord) tasks.push({ id: `${day.date}-word`, subject: 'english', text: day.newWord, done: false, note: '' });
                 if (!day.isRest && day.newEng) tasks.push({ id: `${day.date}-eng`, subject: 'english', text: day.newEng, done: false, note: '' });
                 if (!day.isRest && day.newMath) tasks.push({ id: `${day.date}-math`, subject: 'math', text: day.newMath, done: false, note: '' });
@@ -472,11 +314,51 @@
 
     function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(scheduleData)); }
 
+    // 计算倒计时
+    function updateCountdown() {
+        const today = new Date();
+        const diffTime = EXAM_DATE - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const cdText = document.getElementById('countdown-text');
+        if (diffDays > 0) {
+            cdText.innerText = `距离 2027 考研初试还有 ${diffDays} 天`;
+        } else {
+            cdText.innerText = "就是今天，愿你如愿以偿！";
+        }
+    }
+
+    // 渲染热力图矩阵
+    function renderHeatmap() {
+        const grid = document.getElementById('heatmap-grid');
+        grid.innerHTML = '';
+        scheduleData.forEach((day) => {
+            const totalTasks = day.tasks.length;
+            const completedTasks = day.tasks.filter(t => t.done).length;
+            
+            let level = 0;
+            if (totalTasks > 0) {
+                const percent = completedTasks / totalTasks;
+                if (percent === 1) level = 3;
+                else if (percent >= 0.5) level = 2;
+                else if (percent > 0) level = 1;
+            }
+
+            const cell = document.createElement('div');
+            cell.className = 'heat-cell';
+            if (day.isRest && totalTasks <= 1) {
+                cell.style.backgroundColor = 'transparent';
+                cell.style.border = '1px dashed var(--border-color)';
+            } else {
+                cell.setAttribute('data-level', level);
+            }
+            grid.appendChild(cell);
+        });
+    }
+
     // 渲染顶部时间轴圆圈
     function renderTimeline() {
         const timeline = document.getElementById('timeline');
         timeline.innerHTML = '';
-        
         scheduleData.forEach((day, index) => {
             const totalTasks = day.tasks.length;
             const completedTasks = day.tasks.filter(t => t.done).length;
@@ -484,24 +366,14 @@
             
             const item = document.createElement('div');
             item.className = 'timeline-item';
-            
-            // 提取日期中的天数，如 5/22 提取出 22
             const dayNum = day.date.split('/')[1];
             
             let circleClass = 'circle';
-            if (day.isRest && totalTasks <= 1) circleClass += ' rest'; // 休息日虚线圈
-            else if (isCompleted) circleClass += ' completed'; // 完成变浅蓝色
+            if (day.isRest && totalTasks <= 1) circleClass += ' rest';
+            else if (isCompleted) circleClass += ' completed';
             
-            item.innerHTML = `
-                <div class="${circleClass}"></div>
-                <div class="circle-label">${dayNum}</div>
-            `;
-            
-            // 点击圆圈直接跳转到该天
-            item.onclick = () => {
-                if(currentActiveDate !== index) openDetail(index);
-            };
-            
+            item.innerHTML = `<div class="${circleClass}"></div><div class="circle-label">${dayNum}</div>`;
+            item.onclick = () => { if(currentActiveDate !== index) openDetail(index); };
             timeline.appendChild(item);
         });
     }
@@ -517,7 +389,7 @@
             
             const previewText = day.tasks.length > 0 
                 ? day.tasks.slice(0, 2).map(t => t.text).join(' | ') + (day.tasks.length > 2 ? '...' : '')
-                : '全天休息';
+                : '全天休息，蓄力待发';
 
             const card = document.createElement('div');
             card.className = `day-card ${day.isRest ? 'rest-day' : ''}`;
@@ -536,13 +408,16 @@
             listContainer.appendChild(card);
         });
         
-        renderTimeline(); // 每次渲染列表也同步更新顶部圆圈
+        renderTimeline(); 
+        renderHeatmap();
     }
 
     function openDetail(index) {
         currentActiveDate = index;
         document.getElementById('list-view').style.display = 'none';
         document.getElementById('settings-wrap').style.display = 'none';
+        document.getElementById('global-modules').style.display = 'none';
+        document.getElementById('global-timeline').style.display = 'none';
         document.getElementById('detail-view').style.display = 'block';
         window.scrollTo(0, 0);
         renderDetail();
@@ -552,6 +427,8 @@
         document.getElementById('detail-view').style.display = 'none';
         document.getElementById('list-view').style.display = 'flex';
         document.getElementById('settings-wrap').style.display = 'block';
+        document.getElementById('global-modules').style.display = 'block';
+        document.getElementById('global-timeline').style.display = 'block';
         currentActiveDate = null;
         renderList(); 
     }
@@ -616,7 +493,6 @@
             label.innerText = task.text;
             textWrapper.appendChild(label);
 
-            // 如果有备注，显示备注内容
             if (task.note && task.note.trim() !== '') {
                 const noteEl = document.createElement('div');
                 noteEl.className = 'task-note';
@@ -627,7 +503,6 @@
             contentDiv.appendChild(checkbox);
             contentDiv.appendChild(textWrapper);
 
-            // 右侧操作区：备注 + 修改 + 删除
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'task-actions';
 
@@ -665,7 +540,6 @@
             task.done = isDone;
             saveData();
             updateDetailProgress(dayData);
-            renderTimeline(); // 更新顶部圆圈状态
         }
     }
 
@@ -680,7 +554,6 @@
         textInput.value = ''; 
         saveData();
         renderDetail(); 
-        renderTimeline();
     }
 
     function editTask(taskId, oldText) {
@@ -705,24 +578,21 @@
             const taskIndex = dayData.tasks.findIndex(t => t.id === taskId);
             if (taskIndex > -1) {
                 dayData.tasks.splice(taskIndex, 1);
-                saveData(); renderDetail(); renderTimeline();
+                saveData(); renderDetail();
             }
         }
     }
 
-    /* --- 设置与备份逻辑 --- */
+    /* --- 设置与备份 --- */
     function openSettings() {
         document.getElementById('settings-modal').style.display = 'flex';
         document.getElementById('backup-data').value = JSON.stringify(scheduleData);
     }
-    function closeSettings() {
-        document.getElementById('settings-modal').style.display = 'none';
-    }
+    function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
     function copyBackup() {
         const textarea = document.getElementById('backup-data');
-        textarea.select();
-        document.execCommand('copy');
-        alert('数据已复制到剪贴板！你可以将这段文字保存在备忘录中。');
+        textarea.select(); document.execCommand('copy');
+        alert('数据已复制，可保存在备忘录中或发送至电脑微信同步。');
     }
     function restoreBackup() {
         const jsonStr = document.getElementById('backup-data').value.trim();
@@ -730,40 +600,32 @@
         try {
             const parsedData = JSON.parse(jsonStr);
             if(Array.isArray(parsedData) && parsedData.length > 0) {
-                scheduleData = parsedData;
-                saveData();
-                closeSettings();
-                renderList();
-                alert('进度恢复成功！');
+                scheduleData = parsedData; saveData(); closeSettings(); renderList(); alert('进度恢复成功！');
             } else { alert('数据格式不正确！'); }
-        } catch(e) {
-            alert('粘贴的内容不是有效的数据代码，请检查！');
-        }
+        } catch(e) { alert('粘贴的内容不是有效的数据代码，请检查！'); }
     }
 
-    /* --- 每日抽卡逻辑 --- */
+    /* --- 每日玄学指引逻辑 --- */
     function checkDailyCard() {
         const todayStr = new Date().toLocaleDateString();
-        const lastDraw = localStorage.getItem('nd_last_draw_date');
+        const lastDraw = localStorage.getItem('nd_card_draw_v6');
         
         if (lastDraw !== todayStr) {
-            // 今天还没抽过卡，显示弹窗
-            const randomQuote = dailyCards[Math.floor(Math.random() * dailyCards.length)];
-            document.getElementById('daily-card-content').innerText = randomQuote;
+            const randomCard = guidanceCards[Math.floor(Math.random() * guidanceCards.length)];
+            document.getElementById('daily-card-icon').innerText = randomCard.icon;
+            document.getElementById('daily-card-title').innerText = randomCard.title;
+            document.getElementById('daily-card-content').innerText = randomCard.text;
             document.getElementById('card-modal').style.display = 'flex';
-            // 记录今天已抽
-            localStorage.setItem('nd_last_draw_date', todayStr);
+            localStorage.setItem('nd_card_draw_v6', todayStr);
         }
     }
-    function closeCardModal() {
-        document.getElementById('card-modal').style.display = 'none';
-    }
+    function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
 
     // 启动应用
+    updateCountdown();
     initData();
     renderList();
-    // 延迟一点显示抽卡，让页面先加载完
-    setTimeout(checkDailyCard, 500);
+    setTimeout(checkDailyCard, 600);
 
 </script>
 </body>
